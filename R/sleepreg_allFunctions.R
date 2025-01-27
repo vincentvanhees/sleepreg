@@ -612,8 +612,8 @@ SRI_from_GGIR <- function(outputdir = c(),
                           wr.SWV = TRUE,
                           wr.raster = TRUE,
                           minSRIdays = 5,
-                          SIdef = "T5A5"
-                          ){
+                          SIdef = "T5A5",
+                          GGIR_nonwear_detection_stage = "final") {
   # ----------------------------------------------------
   # Define undefined variables & check for / create dirs --------
   if (length(outputdir) == 0){
@@ -683,6 +683,12 @@ SRI_from_GGIR <- function(outputdir = c(),
   # Define vector to fill row for error cases ----------
   na_vec <- rep(NA,(length(SRIheader)-1))
 
+
+  chartime2iso8601 = function(x, tz) {
+    POStime = as.POSIXlt(as.numeric(as.POSIXlt(x, tz)), origin = "1970-1-1", tz)
+    POStimeISO = strftime(POStime, format = "%Y-%m-%dT%H:%M:%S%z")
+    return(POStimeISO)
+  }
   # ----------------------------------------------------
   # Parameters -------
   ## Eventually add these to the list of function input params, but need to place restrictions on range
@@ -695,8 +701,12 @@ SRI_from_GGIR <- function(outputdir = c(),
   misclperc_insl <- 0.2
   exclNAhrs <- 6 # Hours of NA (i.e., non-wear) data per day above which the entire day will be excluded
 
+  # data/quant.RData has data.frame quant, with SRI value SRI percentile relationship in UK Biobank
+
+  # this only affects output SRI_pctl:
   # load("data/quant.RData")
 
+  load("~/projects/sleepreg/data/quant.RData")
   # ----------------------------------------------------
   # Loop over files, extracting SWVs and SRI -----------
   for (k in 1:length(dir_list)){
@@ -719,11 +729,49 @@ SRI_from_GGIR <- function(outputdir = c(),
         # Load nightsummary d.f.s
         ngtsum.rd <- read.csv(nightsumloc, header = TRUE)
         ngtsum.rd <- ngtsum.rd[grepl(SIdef, ngtsum.rd$sleepparam),]
-
-        nightsummary.rd <- ngtsum.rd[,c(1,2,3,4,19,20,26,27)] # Read night summary data
+        # account for possible alternative names in GGIR output
+        # wakeup
+        possible_alternative_names = c("guider_inbedEnd", "guider_lightsoff")
+        cnt = 1
+        while (length(grep(pattern = "guider_wakeup", x = colnames(ngtsum.rd))) == 0) {
+          colnames(ngtsum.rd) = gsub(pattern = possible_alternative_names[cnt],
+                                     replacement = "guider_wakeup",
+                                     x = colnames(ngtsum.rd))
+          cnt = cnt  + 1
+          if (cnt > 3) stop("guider_wakeup not found")
+        }
+        # onset
+        possible_alternative_names = c("guider_inbedStart", "guider_lightson")
+        cnt = 1
+        while (length(grep(pattern = "guider_onset", x = colnames(ngtsum.rd))) == 0) {
+          colnames(ngtsum.rd) = gsub(pattern = possible_alternative_names[cnt],
+                                     replacement = "guider_onset",
+                                     x = colnames(ngtsum.rd))
+          cnt = cnt  + 1
+          if (cnt > 3) stop("guider_onset not found")
+        }
+        # duration
+        possible_alternative_names = c("guider_inbedDuration")
+        cnt = 1
+        if (length(grep(pattern = "guider_SptDuration", x = colnames(ngtsum.rd))) == 0) {
+          colnames(ngtsum.rd) = gsub(pattern = possible_alternative_names[cnt],
+                                     replacement = "guider_SptDuration",
+                                     x = colnames(ngtsum.rd))
+        }
+        nightsummary.rd <- ngtsum.rd[,c("ID", "night",
+                                           "sleeponset", "sleeponset_ts",
+                                           "wakeup", "wakeup_ts",
+                                           "SptDuration",
+                                           "SleepDurationInSpt",
+                                           "calendar_date", "filename")] # Read night summary data
         nightsummary <- nightsummary.rd[nightsummary.rd$filename == ppts[p],-1]
+        nightsummary2.rd <- ngtsum.rd[,c("ID", "night",
+                                         "sleeponset",  "wakeup",
+                                         "SptDuration", "guider_onset",
+                                         "guider_wakeup", "guider_SptDuration",
+                                         "SleepDurationInSpt", "calendar_date",
+                                         "filename")] # Different subset of nightsummary for sl. var. extraction
 
-        nightsummary2.rd <- ngtsum.rd[,c(1,2,3,4,5,7,8,9,14,26,27)] # Different subset of nightsummary for sl. var. extraction
         nightsummary2 <- nightsummary2.rd[nightsummary2.rd$filename == ppts[p],-1]
 
         # Load SIBs
@@ -743,20 +791,27 @@ SRI_from_GGIR <- function(outputdir = c(),
         sib.cla.sum <- sib.cla.sum[grepl(SIdef, sib.cla.sum$definition),]
 
         # Load meta
-        metadir <- list.files(outputfolder, recursive = TRUE, pattern = c("meta_", "RData", studyname), full.names = TRUE)
-        metadir2 <- stringr::str_replace_all(metadir, "[:punct:]|[:space:]", "_")
-
-        pptMetadir <- metadir[grepl(ppts2[p], metadir2)]
-        if (length(pptMetadir) == 0){
-          print("Error: Meta file under ~meta/basic/ directory is not present, or was not generated by GGIR. Required file is of the format `meta_[name].Rdata`")
-        } else {
-          if (file.exists(pptMetadir)) {
+        for (nw_det_stage in unique(c(GGIR_nonwear_detection_stage, "crude"))) {
+          if (nw_det_stage == "crude") {
+            metadir <- list.files(outputfolder, recursive = TRUE,
+                                  pattern = c("meta_", "RData", studyname), full.names = TRUE)
+            errorMessage = paste0("Error: Meta file under ~meta/basic/ directory is not present, ",
+                                  "or was not generated by GGIR. Required file is of the format",
+                                  " `meta_[name].Rdata`")
+          } else if (nw_det_stage == "final") {
+            metadir <- list.files(paste0(outputfolder, "/meta/ms2.out"), full.names = TRUE)
+            errorMessage = paste0("Error: Meta file under ~meta/s2.out/ directory is not present, ",
+                                  "or was not generated by GGIR. Required file is of the format",
+                                  " `[name].Rdata`")
+          }
+          metadir2 <- stringr::str_replace_all(metadir, "[:punct:]|[:space:]", "_")
+          pptMetadir <- metadir[grepl(ppts2[p], metadir2)]
+          if (length(pptMetadir) != 0 && file.exists(pptMetadir)) {
             load(pptMetadir)
           } else {
-            print("Error: Meta file under ~meta/basic/ directory is not present, or was not generated by GGIR. Required file is of the format `meta_[name].Rdata`")
+            print(errorMessage)
           }
         }
-
         # Load config file
         confloc <- list.files(outputfolder, pattern = "config", full.names = TRUE)
         if (length(confloc) == 0){
@@ -782,12 +837,14 @@ SRI_from_GGIR <- function(outputdir = c(),
         originclock <- as.numeric(substr(originIso,12,13)) + (as.numeric(substr(originIso,15,16)))/60 + (as.numeric(substr(originIso,18,19)))/60/60 # 24h clock time of first timestamp
         maxdays <- ceiling((endmin-originmin)/60/24)
         wakeonly_vector <- rep(0,ceiling(endmin - originmin)) # Define wake-only vector in 1min increments between recording start and end
-
         # -> Define SWV based on GGIR sleep times only ---------
-        dateSplit <- strsplit(nightsummary$calendar_date, "/") # Extract and re-format date information
-        dateSplitDf <- as.data.frame(do.call("rbind", dateSplit))
-        dates <- paste(dateSplitDf[,3], dateSplitDf[,2], dateSplitDf[,1], sep="-")
-
+        if (length(unlist(strsplit(nightsummary$calendar_date[1], "/"))) > 1) {
+          dateSplit <- strsplit(nightsummary$calendar_date, "/") # Extract and re-format date information
+          dateSplitDf <- as.data.frame(do.call("rbind", dateSplit))
+          dates <- paste(dateSplitDf[,3], dateSplitDf[,2], dateSplitDf[,1], sep="-")
+        } else {
+          dates = nightsummary$calendar_date
+        }
         rftsOn <- rep(NA, length(dates))
         rftsOff <-rep(NA, length(dates))
         for (i in 1:length(dates)) {
@@ -805,8 +862,8 @@ SRI_from_GGIR <- function(outputdir = c(),
           }
         }
 
-        isoTsOn <- GGIR::chartime2iso8601(rftsOn, tz=tz) # Re-format times as iso8601
-        isoTsOff <- GGIR::chartime2iso8601(rftsOff, tz=tz)
+        isoTsOn <- chartime2iso8601(rftsOn, tz=tz) # Re-format times as iso8601
+        isoTsOff <- chartime2iso8601(rftsOff, tz=tz)
 
         nightsummary$onsetmin <- round(as.numeric(parsedate::parse_iso_8601(isoTsOn))/60) - originmin
         nightsummary$offsetmin <- round(as.numeric(parsedate::parse_iso_8601(isoTsOff))/60) - originmin
@@ -1038,7 +1095,7 @@ SRI_from_GGIR <- function(outputdir = c(),
             if (NAoff > length(wakeonly_vector)) { # If offset of last night is longer than SWV length, re-write to SWV length
               NAoff <- length(wakeonly_vector)
             }
-
+            if (NAon < 0) NAon = 1
             onoffvector_cons[NAon:NAoff] <- NA
             onoffvector_sibs[NAon:NAoff] <- NA
             onoffvector_GGIRnapwind[NAon:NAoff] <- NA
@@ -1087,9 +1144,11 @@ SRI_from_GGIR <- function(outputdir = c(),
         if (use.GGIRnonwear) {
           ggirNonWear <- sum(M$metalong$nonwearscore)
           if (ggirNonWear > 0) { # If GGIR non-wear detection has been applied, use these values
-
-            nwTS <- M$metalong$timestamp[M$metalong$nonwearscore >= 2] # Take each TS to represent the centre of a 15 minute window
-
+            if (GGIR_nonwear_detection_stage == "crude") {
+              nwTS <- M$metalong$timestamp[M$metalong$nonwearscore >= 2] # Take each TS to represent the centre of a 15 minute window
+            } else if (GGIR_nonwear_detection_stage == "final") {
+              nwTS <- M$metalong$timestamp[which(IMP$rout[,5] == 1)]
+            }
             nwTSunix <- as.numeric(parsedate::parse_iso_8601(nwTS))
 
             nwTSunixOn <- nwTSunix - 7.5*60
