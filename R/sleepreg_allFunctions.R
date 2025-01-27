@@ -23,7 +23,7 @@ ds_accel_csv <- function(acceldir = c(),
                          dsdir = c(),
                          col.timestamp = c(),
                          col.accel = c()
-                         ){
+){
   # ----------------------------------------------------
   # Define non-def variables & check for / create dir --------
   if (length(acceldir) == 0){
@@ -92,7 +92,7 @@ ds_accel_csv <- function(acceldir = c(),
 rollingWindowInd <- function(t=c(),
                              window=c(),
                              step=c()
-                             ){
+){
   if (length(t)==0) {
     stop("Error: Specify t")
   }
@@ -168,7 +168,7 @@ nonwear_detect <- function(dsdir=c(),
                            rmc.col.acc = c(2,3,4),
                            sdThres = 0.12753,
                            rngThres = 0.4905
-                           ){
+){
   if (length(dsdir)==0){
     stop("Error: Specify directory of accelerometer data")
   }
@@ -190,38 +190,38 @@ nonwear_detect <- function(dsdir=c(),
   dsLiNames <- list.files(dsdir, pattern = ".csv")
   for (i in 1:length(dsLi)){ # For each down-sampled file
     # tryCatch({ # Catch errors in each loop
-      wrdir <- paste(nwdir,dsLiNames[i],sep="/")
-      if (!file.exists(wrdir)){
-        appt <- read.csv(dsLi[i]) # Read in data
-        winOnOff <- rollingWindowInd(appt[,rmc.col.time], 3600, 900)
-        winOn <- winOnOff[[1]]; winOff <- winOnOff[[2]]
+    wrdir <- paste(nwdir,dsLiNames[i],sep="/")
+    if (!file.exists(wrdir)){
+      appt <- read.csv(dsLi[i]) # Read in data
+      winOnOff <- rollingWindowInd(appt[,rmc.col.time], 3600, 900)
+      winOn <- winOnOff[[1]]; winOff <- winOnOff[[2]]
 
-        winOn <- winOn[!is.na(winOn)]; winOff <- winOff[!is.na(winOff)]
+      winOn <- winOn[!is.na(winOn)]; winOff <- winOff[!is.na(winOff)]
 
-        st15NW <- data.frame(ts =((appt[,rmc.col.time][winOff] - appt[,rmc.col.time][winOn])/2 + appt[,rmc.col.time][winOn] - 450),
-                             nonwear = FALSE) # Make d.f. of non-wear blocks
+      st15NW <- data.frame(ts =((appt[,rmc.col.time][winOff] - appt[,rmc.col.time][winOn])/2 + appt[,rmc.col.time][winOn] - 450),
+                           nonwear = FALSE) # Make d.f. of non-wear blocks
 
-        for (j in 1:nrow(st15NW)){ # For each 60 min block, 15 min step
-          countAx = 0
-          for (k in 1:length(rmc.col.acc)){
-            if (countAx < 2){
-              winDat <- appt[,rmc.col.acc[k]][winOn[j]:winOff[j]] # Extract data for this window and axis
+      for (j in 1:nrow(st15NW)){ # For each 60 min block, 15 min step
+        countAx = 0
+        for (k in 1:length(rmc.col.acc)){
+          if (countAx < 2){
+            winDat <- appt[,rmc.col.acc[k]][winOn[j]:winOff[j]] # Extract data for this window and axis
 
-              sdev <- sd(winDat)
-              rng <- abs(range(winDat)[1] - range(winDat)[2])
+            sdev <- sd(winDat)
+            rng <- abs(range(winDat)[1] - range(winDat)[2])
 
-              if (sdev < sdThres & rng < rngThres){
-                countAx <- countAx + 1
-              }
+            if (sdev < sdThres & rng < rngThres){
+              countAx <- countAx + 1
             }
           }
-          if (countAx >= 2){ # If >=2 axes satisfy criteria, call this block non-wear
-            st15NW$nonwear[j] <- TRUE
-          }
         }
-        write.csv(st15NW, wrdir, row.names = FALSE)  # Write to parent directory
+        if (countAx >= 2){ # If >=2 axes satisfy criteria, call this block non-wear
+          st15NW$nonwear[j] <- TRUE
+        }
       }
-      print(paste0("Non-wear data extracted: ", dsLiNames[i]))
+      write.csv(st15NW, wrdir, row.names = FALSE)  # Write to parent directory
+    }
+    print(paste0("Non-wear data extracted: ", dsLiNames[i]))
 
 
     #   }, error = function(e) {
@@ -254,7 +254,7 @@ raster_from_SWS <- function(SWS = c(),
                             rasdir = c(),
                             pptName = c(),
                             tz = "UTC"
-                            ){
+){
   # Check and format function inputs --------------
   # Check input params exist
   if (length(SWS) == 0){
@@ -407,7 +407,7 @@ GGIR_from_csv <- function(dsdir = c(),
                           rmc.col.acc = c(2:4),
                           rmc.col.time = 1,
                           tz = "UTC"
-                          ){
+){
   # ----------------------------------------------------
   # Define undefined variables & check for / create dirs --------
   if (length(dsdir) == 0){
@@ -436,129 +436,129 @@ GGIR_from_csv <- function(dsdir = c(),
   study_list <- list.files(dsdir, pattern = "*.csv", full.names = FALSE)
   for (k in 1:length(file_list)){
     # tryCatch({ # Start of code to catch any error in a loop iteration, write error to SRI file, and skip to next loop iteration
-      # --------------------
-      # [f] Define 'studyname' -------
-      studyname <- study_list[k]
-      # --------------------
-      # [nf] Check if outputdir already exists -------
-      checkdir <- paste(outputdir,"/output_",studyname,sep="")
-      if (dir.exists(checkdir)) { # If the output folder directory already exists, skip participant
-        next
-      }
+    # --------------------
+    # [f] Define 'studyname' -------
+    studyname <- study_list[k]
+    # --------------------
+    # [nf] Check if outputdir already exists -------
+    checkdir <- paste(outputdir,"/output_",studyname,sep="")
+    if (dir.exists(checkdir)) { # If the output folder directory already exists, skip participant
+      next
+    }
 
-      # ----------
-      # Specify n rows of accel. data
-      rmc.nrow <- nrow(data.table::fread(file_list[k])) # Read in data, count number of rows
+    # ----------
+    # Specify n rows of accel. data
+    rmc.nrow <- nrow(data.table::fread(file_list[k])) # Read in data, count number of rows
 
-      # ---------------------------
-      # [nf] Run GGIR --------
-      ## At some point, go through and delete all the parameters here that are defaults (minor issue)
-      ## Are we only specifying that GGIR look at one column of data? -> if so, we can improve the
-      ## speed of the down-sampling function by requiring it to only output one accel column and one t col
-      GGIR::g.shell.GGIR(
-        # General Parameters
-        mode=c(1,2,3,4),
-        datadir=file_list[k],
-        outputdir=outputdir,
-        f0=1,
-        f1=c(),
-        studyname=studyname,
-        overwrite = FALSE, # If you want to overwrite the previous milestone data
-        do.imp=TRUE, # Do imputation (recommended)
-        idloc=2, # id location (1 = file header, 2 = filename)
-        storefolderstructure=TRUE,
-        chunksize = 1,
-        dynrange = c(8),
-        # minimumFileSizeMB = 200, # minimum size for analysis
-        # desiredtz = "Australia/Melbourne",
+    # ---------------------------
+    # [nf] Run GGIR --------
+    ## At some point, go through and delete all the parameters here that are defaults (minor issue)
+    ## Are we only specifying that GGIR look at one column of data? -> if so, we can improve the
+    ## speed of the down-sampling function by requiring it to only output one accel column and one t col
+    GGIR::g.shell.GGIR(
+      # General Parameters
+      mode=c(1,2,3,4),
+      datadir=file_list[k],
+      outputdir=outputdir,
+      f0=1,
+      f1=c(),
+      studyname=studyname,
+      overwrite = FALSE, # If you want to overwrite the previous milestone data
+      do.imp=TRUE, # Do imputation (recommended)
+      idloc=2, # id location (1 = file header, 2 = filename)
+      storefolderstructure=TRUE,
+      chunksize = 1,
+      dynrange = c(8),
+      # minimumFileSizeMB = 200, # minimum size for analysis
+      # desiredtz = "Australia/Melbourne",
 
-        # CSV Read Parameters
-        rmc.file = file_list[k], # Filename of file to be read.
-        rmc.nrow = rmc.nrow, # Number of rows to read, same as nrow argument in read.csv and in fread.
-        rmc.skip = 1, # Number of rows to skip, same as skip argument in read.csv and in fread.
-        rmc.dec=".", # Decimal used for numbers, same as skip argument in read.csv and in fread.
-        rmc.firstrow.acc = 2, # First row (number) of the acceleration data.
-        rmc.firstrow.header= c(), # First row (number) of the header. Leave blank if the file does not have a header.
-        rmc.header.length = c(), # If file has header, specify header length (numeric).
-        rmc.col.acc = rmc.col.acc, # Vector with three column (numbers) in which the acceleration signals are stored
-        rmc.col.temp = c(), # Scalar with column (number) in which the temperature is stored.
-        # Leave in default setting if no temperature is avaible. The temperature will be used by g.calibrate.
-        rmc.col.time = rmc.col.time, # Scalar with column (number) in which the timestamps are stored. Leave in default setting if timestamps are not stored.
-        rmc.unit.acc = "g", # Character with unit of acceleration values: "g", "mg", or "bit"
-        rmc.unit.temp = "C", # Character with unit of temperature values: (K)elvin, (C)elsius, or (F)ahrenheit
-        rmc.unit.time = "UNIXsec", # Character with unit of timestamps: "POSIX", "UNIXsec" (seconds since origin, see argument origin),
-        # "character", or "ActivPAL" (exotic timestamp format only used in the ActivPAL activity monitor).
-        rmc.format.time = "%Y-%m-%d %H:%M:%OS", # Format of timestamp, only used for rmc.unit.time: character and POSIX.
-        rmc.bitrate = c(), # Numeric: If unit of acceleration is a bit then provide bit rate, e.g. 12 bit.
-        rmc.dynamic_range = c(), # Numeric, if unit of acceleration is a bit then provide dynamic range deviation in g from zero,
-        # e.g. +/-6g would mean this argument needs to be 6.
-        rmc.unsignedbit = FALSE, # Boolean, if unsignedbit = TRUE means that bits are only positive numbers.
-        # if unsignedbit = FALSE then bits are both positive and negative.
-        rmc.origin = "1970-01-01", # Origin of time when unit of time is UNIXsec, e.g. 1970-1-1
-        rmc.desiredtz = tz, # Timezone in which device was configured and experiments took place. If experiments took place in a
-        # different timezone, then use this argument for the timezone in whcih the experiments took place and
-        # argument configtz to specify where the device was configured (not implemented yet).
-        rmc.sf = 1, # Sample rate in Hertz, if this is stored in the file header then the that will be used instead.
-        rmc.headername.sf = c(), # If file has a header: Row name (character) under which the sample frequency can be found.
-        rmc.headername.sn = c(), # If file has a header: Row name (character) under which the serial number can be found.
-        rmc.headername.recordingid = c(), # If file has a header: Row name (character) under which the recording ID can be found.
-        rmc.header.structure = c(), # Character used to split the header name from the header value, e.g. ":" or " "
-        rmc.check4timegaps = FALSE, # Boolean to indicate whether gaps in time should be imputed with zeros. Some sensing equipment provides
-        # accelerometer with gaps in time. The rest of GGIR is not designed for this, by setting this argument to TRUE the
-        # gaps in time will be filled with zeros.
-        rmc.col.wear = c(), # If external wear detection outcome is stored as part of the data then this can be used by GGIR. This argument specifies
-        # the column in which the wear detection (Boolean) is stored.
-        rmc.doresample=FALSE, # Boolean to indicate whether to resample the data based on the available timestamps and extracted sample rate from the
-        # file header
+      # CSV Read Parameters
+      rmc.file = file_list[k], # Filename of file to be read.
+      rmc.nrow = rmc.nrow, # Number of rows to read, same as nrow argument in read.csv and in fread.
+      rmc.skip = 1, # Number of rows to skip, same as skip argument in read.csv and in fread.
+      rmc.dec=".", # Decimal used for numbers, same as skip argument in read.csv and in fread.
+      rmc.firstrow.acc = 2, # First row (number) of the acceleration data.
+      rmc.firstrow.header= c(), # First row (number) of the header. Leave blank if the file does not have a header.
+      rmc.header.length = c(), # If file has header, specify header length (numeric).
+      rmc.col.acc = rmc.col.acc, # Vector with three column (numbers) in which the acceleration signals are stored
+      rmc.col.temp = c(), # Scalar with column (number) in which the temperature is stored.
+      # Leave in default setting if no temperature is avaible. The temperature will be used by g.calibrate.
+      rmc.col.time = rmc.col.time, # Scalar with column (number) in which the timestamps are stored. Leave in default setting if timestamps are not stored.
+      rmc.unit.acc = "g", # Character with unit of acceleration values: "g", "mg", or "bit"
+      rmc.unit.temp = "C", # Character with unit of temperature values: (K)elvin, (C)elsius, or (F)ahrenheit
+      rmc.unit.time = "UNIXsec", # Character with unit of timestamps: "POSIX", "UNIXsec" (seconds since origin, see argument origin),
+      # "character", or "ActivPAL" (exotic timestamp format only used in the ActivPAL activity monitor).
+      rmc.format.time = "%Y-%m-%d %H:%M:%OS", # Format of timestamp, only used for rmc.unit.time: character and POSIX.
+      rmc.bitrate = c(), # Numeric: If unit of acceleration is a bit then provide bit rate, e.g. 12 bit.
+      rmc.dynamic_range = c(), # Numeric, if unit of acceleration is a bit then provide dynamic range deviation in g from zero,
+      # e.g. +/-6g would mean this argument needs to be 6.
+      rmc.unsignedbit = FALSE, # Boolean, if unsignedbit = TRUE means that bits are only positive numbers.
+      # if unsignedbit = FALSE then bits are both positive and negative.
+      rmc.origin = "1970-01-01", # Origin of time when unit of time is UNIXsec, e.g. 1970-1-1
+      rmc.desiredtz = tz, # Timezone in which device was configured and experiments took place. If experiments took place in a
+      # different timezone, then use this argument for the timezone in whcih the experiments took place and
+      # argument configtz to specify where the device was configured (not implemented yet).
+      rmc.sf = 1, # Sample rate in Hertz, if this is stored in the file header then the that will be used instead.
+      rmc.headername.sf = c(), # If file has a header: Row name (character) under which the sample frequency can be found.
+      rmc.headername.sn = c(), # If file has a header: Row name (character) under which the serial number can be found.
+      rmc.headername.recordingid = c(), # If file has a header: Row name (character) under which the recording ID can be found.
+      rmc.header.structure = c(), # Character used to split the header name from the header value, e.g. ":" or " "
+      rmc.check4timegaps = FALSE, # Boolean to indicate whether gaps in time should be imputed with zeros. Some sensing equipment provides
+      # accelerometer with gaps in time. The rest of GGIR is not designed for this, by setting this argument to TRUE the
+      # gaps in time will be filled with zeros.
+      rmc.col.wear = c(), # If external wear detection outcome is stored as part of the data then this can be used by GGIR. This argument specifies
+      # the column in which the wear detection (Boolean) is stored.
+      rmc.doresample=FALSE, # Boolean to indicate whether to resample the data based on the available timestamps and extracted sample rate from the
+      # file header
 
-        #PART 1 Parameters
-        # Key functions = reading file, auto-calibration and extracting features
-        dayborder= 0,
-        windowsizes=c(15,900,3600), #(Epoch length, non-wear detection resolution, non-wear detection evaluation window
-        do.cal=TRUE, #Apply autocalibration (recommended)
-        do.enmo=TRUE, #Need for physical activity analysis
-        do.anglez=TRUE, #needed for sleep detection
-        printsummary=FALSE,
+      #PART 1 Parameters
+      # Key functions = reading file, auto-calibration and extracting features
+      dayborder= 0,
+      windowsizes=c(15,900,3600), #(Epoch length, non-wear detection resolution, non-wear detection evaluation window
+      do.cal=TRUE, #Apply autocalibration (recommended)
+      do.enmo=TRUE, #Need for physical activity analysis
+      do.anglez=TRUE, #needed for sleep detection
+      printsummary=FALSE,
 
-        #PART 2 Parameters
-        #Key Functions = Non-wear detection, imputation, and basic descriptives
-        strategy=1,#If strategy is set to value 1, then check out arguments hrs.del.start and hrs.del.end.
-        #If strategy is set to value 3, then check out arguments ndayswindow.
-        hrs.del.start=0, #Only relevant when strategy = 1. How many HOURS need to be ignored at the START of the measurement
-        hrs.del.end = 0, #Only relevant when strategy = 1. How many HOURS need to be ignored at the END of the measurement
-        maxdur=30, #How many Days of measurement do you maximally expect?
-        includedaycrit=16, #Number of minimum valid hours in a day to attempt physical activity analysis
-        M5L5res=10, #resolution in minutes of M5 and L5 calculation
-        winhr=c(5,5), #Size of M5 and L5 (5 hours by default)
-        qlevels= c(), #Quantiles to calculate, set value at c() if you dont want quantiles
-        qwindow=c(0,24), #Window over which to calculate quantiles
-        ilevels=c(), #c(0,100,400,8000), # Acceleration values (metric ENMO) from which a frequency distribution need to be
-        iglevels=TRUE,
-        mvpathreshold=c(100), # moderate and vigorous physical activity threshold
-        bout.metric=4,
-        do.parallel = TRUE,
+      #PART 2 Parameters
+      #Key Functions = Non-wear detection, imputation, and basic descriptives
+      strategy=1,#If strategy is set to value 1, then check out arguments hrs.del.start and hrs.del.end.
+      #If strategy is set to value 3, then check out arguments ndayswindow.
+      hrs.del.start=0, #Only relevant when strategy = 1. How many HOURS need to be ignored at the START of the measurement
+      hrs.del.end = 0, #Only relevant when strategy = 1. How many HOURS need to be ignored at the END of the measurement
+      maxdur=30, #How many Days of measurement do you maximally expect?
+      includedaycrit=16, #Number of minimum valid hours in a day to attempt physical activity analysis
+      M5L5res=10, #resolution in minutes of M5 and L5 calculation
+      winhr=c(5,5), #Size of M5 and L5 (5 hours by default)
+      qlevels= c(), #Quantiles to calculate, set value at c() if you dont want quantiles
+      qwindow=c(0,24), #Window over which to calculate quantiles
+      ilevels=c(), #c(0,100,400,8000), # Acceleration values (metric ENMO) from which a frequency distribution need to be
+      iglevels=TRUE,
+      mvpathreshold=c(100), # moderate and vigorous physical activity threshold
+      bout.metric=4,
+      do.parallel = TRUE,
 
-        #PART 3 Parameters
-        #Key functions = Sleep detection
-        anglethreshold=5,
-        timethreshold=5,
-        ignorenonwear=TRUE, # If TRUE, non-wear is not detected as sleep (if FALSE, then it will work with imputed data)
-        do.part3.pdf=FALSE,# make false inn final product.
+      #PART 3 Parameters
+      #Key functions = Sleep detection
+      anglethreshold=5,
+      timethreshold=5,
+      ignorenonwear=TRUE, # If TRUE, non-wear is not detected as sleep (if FALSE, then it will work with imputed data)
+      do.part3.pdf=FALSE,# make false inn final product.
 
-        #PART 4 Parameters
-        #Key Functions = integrating sleep log (if have one) with sleep detection, storing day and person specific summaries
-        excludefirstlast=FALSE, #Exclude first and last night for sleep analysis
-        includenightcrit=16, # Number of minimum valid hours in a day to attempt sleep analysis
-        def.noc.sleep=c(1), # method as defined by van hees (2018)
-        do.visual = FALSE, #not for final analysis
-        #  outliers.only = FALSE,
+      #PART 4 Parameters
+      #Key Functions = integrating sleep log (if have one) with sleep detection, storing day and person specific summaries
+      excludefirstlast=FALSE, #Exclude first and last night for sleep analysis
+      includenightcrit=16, # Number of minimum valid hours in a day to attempt sleep analysis
+      def.noc.sleep=c(1), # method as defined by van hees (2018)
+      do.visual = FALSE, #not for final analysis
+      #  outliers.only = FALSE,
 
-        #Report Generation
-        do.report=c(2,4), # What parts does a report need to be generated for (options 2, 4 and 5 )
-        visualreport = FALSE,
-        dofirstpage = FALSE, # First page of the pdf with simple summary histograms
-        viewingwindow = 2 # viewing window of the visual report (1 centres at day and 2 centres at night)
-      )
+      #Report Generation
+      do.report=c(2,4), # What parts does a report need to be generated for (options 2, 4 and 5 )
+      visualreport = FALSE,
+      dofirstpage = FALSE, # First page of the pdf with simple summary histograms
+      viewingwindow = 2 # viewing window of the visual report (1 centres at day and 2 centres at night)
+    )
 
     #   }, error = function(e) {
     #   print(e)
@@ -615,7 +615,7 @@ SRI_from_GGIR <- function(outputdir = c(),
                           wr.raster = TRUE,
                           minSRIdays = 5,
                           SIdef = "T5A5"
-                          ){
+){
   # ----------------------------------------------------
   # Define undefined variables & check for / create dirs --------
   if (length(outputdir) == 0){
@@ -697,7 +697,7 @@ SRI_from_GGIR <- function(outputdir = c(),
   misclperc_insl <- 0.2
   exclNAhrs <- 6 # Hours of NA (i.e., non-wear) data per day above which the entire day will be excluded
 
-  load("data/quant.RData")
+  load("~/projects/sleepreg/data/quant.RData")
 
   # data/quant.RData has data.frame quant, with SRI value SRI percentile relationship in UK Biobank
   # this only affects output SRI_pctl
@@ -708,664 +708,667 @@ SRI_from_GGIR <- function(outputdir = c(),
     # Determine unique participants in this iteration of dir_list. For non-parallel GGIR, will only be one. For parallel GGIR, will be multiple
     # tryCatch({ # Start of code to catch any error in a loop iteration, write error to SRI file, and skip to next loop iteration
 
-      studyname <- sub("output_","",study_list[k])
-      outputfolder <- dir_list[k] # Output folder directory
-      nightsumloc <- paste(outputfolder,"/results/QC/part4_nightsummary_sleep_full.csv",sep="") # Nightsummary location
-      temp <- read.csv(nightsumloc, header = TRUE)
-      nightsummary.ppts <- temp$filename
-      temp <- c()
-      ppts <- unique(nightsummary.ppts) # List of participants within this GGIR output folder
-      ppts2 <- stringr::str_replace_all(ppts, "[:punct:]|[:space:]", "_")
+    studyname <- sub("output_","",study_list[k])
+    outputfolder <- dir_list[k] # Output folder directory
+    nightsumloc <- paste(outputfolder,"/results/QC/part4_nightsummary_sleep_full.csv",sep="") # Nightsummary location
+    temp <- read.csv(nightsumloc, header = TRUE)
+    nightsummary.ppts <- temp$filename
+    temp <- c()
+    ppts <- unique(nightsummary.ppts) # List of participants within this GGIR output folder
+    ppts2 <- stringr::str_replace_all(ppts, "[:punct:]|[:space:]", "_")
 
     for (p in 1:length(ppts)){
       # tryCatch({ # Start of code to catch any error in a loop iteration, write error to SRI file, and skip to next loop iteration
-        # --------------------
-        # Load required data for this ppt -----------
-        # Load nightsummary d.f.s
-        ngtsum.rd <- read.csv(nightsumloc, header = TRUE) #QC/part4_nightsummary_sleep_full.csv"
-        ngtsum.rd <- ngtsum.rd[grepl(SIdef, ngtsum.rd$sleepparam),]
-        nightsummary.rd <- ngtsum.rd #[,c(1,2,3,4,19,20,26,27)] # Read night summary data
-        nightsummary <- nightsummary.rd[nightsummary.rd$filename == ppts[p],-1]
-        nightsummary2.rd <- ngtsum.rd #[,c(1,2,3,4,5,7,8,9,14,26,27)] # Different subset of nightsummary for sl. var. extraction
-        nightsummary2 <- nightsummary2.rd[nightsummary2.rd$filename == ppts[p],-1]
+      # --------------------
+      # Load required data for this ppt -----------
+      # Load nightsummary d.f.s
+      ngtsum.rd <- read.csv(nightsumloc, header = TRUE) #QC/part4_nightsummary_sleep_full.csv"
+      ngtsum.rd <- ngtsum.rd[grepl(SIdef, ngtsum.rd$sleepparam),]
+      nightsummary.rd <- ngtsum.rd[, c("ID", "night", "sleeponset",
+                                       "wakeup", "SptDuration",
+                                       "SleepDurationInSpt",
+                                       "calendar_date", "filename")] # Read night summary data
+      nightsummary <- nightsummary.rd[nightsummary.rd$filename == ppts[p],-1]
+      nightsummary2.rd <- ngtsum.rd #[,c(1,2,3,4,5,7,8,9,14,26,27)] # Different subset of nightsummary for sl. var. extraction
+      nightsummary2 <- nightsummary2.rd[nightsummary2.rd$filename == ppts[p],-1]
 
-        # Load SIBs
-        sibdir <- paste0(outputfolder,"/meta/ms3.out")
-        sibdir.fl <- list.files(sibdir)
-        sibdir.fl2 <- stringr::str_replace_all(sibdir.fl, "[:punct:]|[:space:]", "_")
+      # Load SIBs
+      sibdir <- paste0(outputfolder,"/meta/ms3.out")
+      sibdir.fl <- list.files(sibdir)
+      sibdir.fl2 <- stringr::str_replace_all(sibdir.fl, "[:punct:]|[:space:]", "_")
 
-        if (length(ppts) == 1){
-          studyname2 <- stringr::str_replace_all(studyname, "[:punct:]|[:space:]", "_")
-          sibloc <- paste(sibdir,sibdir.fl[grepl(studyname2, sibdir.fl2)],sep="/") # For series GGIR output
-          load(sibloc) # Load sustained inactivity data to the GE as "sib.cla.sum"
+      if (length(ppts) == 1){
+        studyname2 <- stringr::str_replace_all(studyname, "[:punct:]|[:space:]", "_")
+        sibloc <- paste(sibdir,sibdir.fl[grepl(studyname2, sibdir.fl2)],sep="/") # For series GGIR output
+        load(sibloc) # Load sustained inactivity data to the GE as "sib.cla.sum"
+      } else {
+        sibloc <- paste(sibdir,sibdir.fl[grepl(ppts2[p],sibdir.fl2)],sep="/") # For parallel output, find file with ppt name inside
+        load(sibloc)
+      }
+
+      sib.cla.sum <- sib.cla.sum[grepl(SIdef, sib.cla.sum$definition),]
+
+      # Load meta
+      metadir <- list.files(outputfolder, recursive = TRUE, pattern = c("meta_", "RData", studyname), full.names = TRUE)
+      metadir2 <- stringr::str_replace_all(metadir, "[:punct:]|[:space:]", "_")
+
+      pptMetadir <- metadir[grepl(ppts2[p], metadir2)]
+      if (length(pptMetadir) == 0){
+        print("Error: Meta file under ~meta/basic/ directory is not present, or was not generated by GGIR. Required file is of the format `meta_[name].Rdata`")
+      } else {
+        if (file.exists(pptMetadir)) {
+          load(pptMetadir)
         } else {
-          sibloc <- paste(sibdir,sibdir.fl[grepl(ppts2[p],sibdir.fl2)],sep="/") # For parallel output, find file with ppt name inside
-          load(sibloc)
-        }
-
-        sib.cla.sum <- sib.cla.sum[grepl(SIdef, sib.cla.sum$definition),]
-
-        # Load meta
-        metadir <- list.files(outputfolder, recursive = TRUE, pattern = c("meta_", "RData", studyname), full.names = TRUE)
-        metadir2 <- stringr::str_replace_all(metadir, "[:punct:]|[:space:]", "_")
-
-        pptMetadir <- metadir[grepl(ppts2[p], metadir2)]
-        if (length(pptMetadir) == 0){
           print("Error: Meta file under ~meta/basic/ directory is not present, or was not generated by GGIR. Required file is of the format `meta_[name].Rdata`")
-        } else {
-          if (file.exists(pptMetadir)) {
-            load(pptMetadir)
-          } else {
-            print("Error: Meta file under ~meta/basic/ directory is not present, or was not generated by GGIR. Required file is of the format `meta_[name].Rdata`")
-          }
         }
-        # Load config file
-        confloc <- list.files(outputfolder, pattern = "config", full.names = TRUE)
-        if (length(confloc) == 0){
+      }
+      # Load config file
+      confloc <- list.files(outputfolder, pattern = "config", full.names = TRUE)
+      if (length(confloc) == 0){
+        print("Error: Config file is not present, or was not generated by GGIR. Required file is `config.csv`, and exists under `output_xxx` directory.")
+      } else {
+        if (file.exists(confloc)) {
+          conf <- read.csv(confloc)
+        } else {
           print("Error: Config file is not present, or was not generated by GGIR. Required file is `config.csv`, and exists under `output_xxx` directory.")
+        }
+      }
+
+      # Timezone
+      tz <- conf$value[conf$argument == "desiredtz"]
+
+      # -----------------------------------------------------------
+      # Sleep-wake vector calc
+      # --------------------
+      # -> Get first and last timestamps in minutes ---------
+      originIso <- parsedate::parse_iso_8601(M$metashort$timestamp[1])
+      originmin <- as.numeric(originIso)/60
+      endmin <- as.numeric(parsedate::parse_iso_8601(M$metashort$timestamp[length(M$metashort$timestamp)]))/60
+      originclock <- as.numeric(substr(originIso,12,13)) + (as.numeric(substr(originIso,15,16)))/60 + (as.numeric(substr(originIso,18,19)))/60/60 # 24h clock time of first timestamp
+      maxdays <- ceiling((endmin-originmin)/60/24)
+      wakeonly_vector <- rep(0,ceiling(endmin - originmin)) # Define wake-only vector in 1min increments between recording start and end
+
+      # -> Define SWV based on GGIR sleep times only ---------
+      dates = nightsummary$calendar_date
+      # dateSplit <- strsplit(nightsummary$calendar_date, "/") # Extract and re-format date information
+      # dateSplitDf <- as.data.frame(do.call("rbind", dateSplit))
+      # dates <- paste(dateSplitDf[,3], dateSplitDf[,2], dateSplitDf[,1], sep="-")
+
+      rftsOn <- rep(NA, length(dates))
+      rftsOff <-rep(NA, length(dates))
+      for (i in 1:length(dates)) {
+        if (nightsummary$sleeponset[i]<24) {
+          rftsOn[i] <- paste(dates[i], nightsummary$sleeponset_ts[i], sep=" ")
         } else {
-          if (file.exists(confloc)) {
-            conf <- read.csv(confloc)
-          } else {
-            print("Error: Config file is not present, or was not generated by GGIR. Required file is `config.csv`, and exists under `output_xxx` directory.")
+          newdate <- substr((as.POSIXlt.character(dates[i]) + 60*60*26),1,10)
+          rftsOn[i] <- paste(newdate, nightsummary$sleeponset_ts[i], sep=" ")
+        }
+        if (nightsummary$wakeup[i]<24) {
+          rftsOff[i] <- paste(dates[i], nightsummary$wakeup_ts[i], sep=" ")
+        } else {
+          newdate <- substr((as.POSIXlt.character(dates[i]) + 60*60*26),1,10)
+          rftsOff[i] <- paste(newdate, nightsummary$wakeup_ts[i], sep=" ")
+        }
+      }
+      # isoTsOn <- GGIR::chartime2iso8601(rftsOn, tz=tz) # Re-format times as iso8601
+      # isoTsOff <- GGIR::chartime2iso8601(rftsOff, tz=tz)
+      isoTsOn <- GGIR::POSIXtime2iso8601(rftsOn, tz=tz) # Re-format times as iso8601
+      isoTsOff <- GGIR::POSIXtime2iso8601(rftsOff, tz=tz)
+
+      nightsummary$onsetmin <- round(as.numeric(parsedate::parse_iso_8601(isoTsOn))/60) - originmin
+      nightsummary$offsetmin <- round(as.numeric(parsedate::parse_iso_8601(isoTsOff))/60) - originmin
+
+      nightsummary <- nightsummary[(nightsummary$offsetmin - nightsummary$onsetmin) < 16*60,] # Exclude all nightly 'sleep' times > 16h
+      if (nrow(nightsummary) < 1){ # If nightsummary is now empty, skip to next line and write an error.
+        error_vec <- c(ppts[p],na_vec)
+        write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
+                    append = TRUE, row.names=FALSE) # Write Error to SRI.csv
+        next
+      }
+
+      onoffvector_cons <- wakeonly_vector
+      for (i in 1:nrow(nightsummary)){ # Make all epochs between onset/offset times equal to one (representing sleep)
+        onoffvector_cons[(nightsummary$onsetmin[i]):(nightsummary$offsetmin[i])] <- 1
+      }
+
+      # -> Write required SIB data to df, re-format  --------------------
+      sibonoff <- sib.cla.sum[,c("sib.onset.time","sib.end.time")] # Subset sib onset and offset times
+      sibonoff <- sibonoff[!sibonoff$sib.onset.time == "",] # Check for and remove all empty sibonoff values
+
+      siboncont <- round((as.numeric(parsedate::parse_iso_8601(sibonoff[,1])))/60) - originmin # Convert each set to UNIXmin
+      siboffcont <- round((as.numeric(parsedate::parse_iso_8601(sibonoff[,2])))/60) - originmin
+      sibonoff_min1 <- data.frame(siboncont, siboffcont) # Get a data frame of sib onset/offset in UNIXmin
+      sibonoff_min <- sibonoff_min1[sibonoff_min1[,1] > 0,] # Remove any negative value (for SIB onsets outside SRI days)
+      sibonoff_min <- sibonoff_min[sibonoff_min[,2] < length(wakeonly_vector),] # Remove all SIB values outside the range of the swv used throughout.
+
+      # -> Define SWV based on GGIR sleep times and WASO (based on SIBs) --------------
+      sib_bool <- logical(nrow(sibonoff_min)) # make a vector of boolean zeros
+      for (i in 1:nrow(nightsummary)) { # for each day
+        for (j in 1:nrow(sibonoff_min)){ # for each row of sib
+          if ( # generate a TRUE value for every sibonset/offset pair with either onset or offset within a sleep-wake period
+            (
+              (sibonoff_min[j,1] >= nightsummary$onsetmin[i])
+              &&
+              (sibonoff_min[j,1] <= nightsummary$offsetmin[i])
+            )
+            ||
+            (
+              (sibonoff_min[j,2] >= nightsummary$onsetmin[i])
+              &&
+              (sibonoff_min[j,2] <= nightsummary$offsetmin[i])
+            )
+          ){
+            sib_bool[j] <- TRUE # Set equivalent boolean element to TRUE
           }
         }
+      }
 
-        # Timezone
-        tz <- conf$value[conf$argument == "desiredtz"]
+      sibonoff_min_insl <- sibonoff_min[sib_bool,] # all sets of sib onset/offset within sleep onset/offset times
+      sibonoff_min_outsl <- sibonoff_min[!sib_bool,] # all sets of sib onset/offset outside sleep onset/offset times
 
-        # -----------------------------------------------------------
-        # Sleep-wake vector calc
-        # --------------------
-        # -> Get first and last timestamps in minutes ---------
-        originIso <- parsedate::parse_iso_8601(M$metashort$timestamp[1])
-        originmin <- as.numeric(originIso)/60
-        endmin <- as.numeric(parsedate::parse_iso_8601(M$metashort$timestamp[length(M$metashort$timestamp)]))/60
-        originclock <- as.numeric(substr(originIso,12,13)) + (as.numeric(substr(originIso,15,16)))/60 + (as.numeric(substr(originIso,18,19)))/60/60 # 24h clock time of first timestamp
-        maxdays <- ceiling((endmin-originmin)/60/24)
-        wakeonly_vector <- rep(0,ceiling(endmin - originmin)) # Define wake-only vector in 1min increments between recording start and end
+      sibOFFON_min_insl <- as.data.frame(cbind( # Rearrange vector, for ease of difference calculating. Glue first onset and last offset to top and tail.
+        c(nightsummary$onsetmin[1],sibonoff_min_insl[,2]),
+        c(sibonoff_min_insl[,1],nightsummary$offsetmin[length(nightsummary$offsetmin)])
+      ))
+      diff <- sibOFFON_min_insl[,2] - sibOFFON_min_insl[,1] # Calculate the SIB gaps (offset - previous onset)
+      acceptedsibWASO <- sibOFFON_min_insl[(diff >= WASOmin & diff < max(nightsummary$wakeup-nightsummary$sleeponset)*60 ),]
+      # Keep all SIB gaps greater than WASOmin and smaller than the longest sleep duration (i.e., wake during the day)
 
-        # -> Define SWV based on GGIR sleep times only ---------
-        dates = nightsummary$calendar_date
-        # dateSplit <- strsplit(nightsummary$calendar_date, "/") # Extract and re-format date information
-        # dateSplitDf <- as.data.frame(do.call("rbind", dateSplit))
-        # dates <- paste(dateSplitDf[,3], dateSplitDf[,2], dateSplitDf[,1], sep="-")
+      onoffvector_sibs <- onoffvector_cons
+      if (nrow(acceptedsibWASO) > 0){
+        for (i in 1:nrow(acceptedsibWASO)){ # Make all epochs between accepted SIB gaps equal to zero (representing wake)
+          onoffvector_sibs[(acceptedsibWASO[i,1]):(acceptedsibWASO[i,2])] <- 0
+        }
+      }
 
-        rftsOn <- rep(NA, length(dates))
-        rftsOff <-rep(NA, length(dates))
-        for (i in 1:length(dates)) {
-          if (nightsummary$sleeponset[i]<24) {
-            rftsOn[i] <- paste(dates[i], nightsummary$sleeponset_ts[i], sep=" ")
-          } else {
-            newdate <- substr((as.POSIXlt.character(dates[i]) + 60*60*26),1,10)
-            rftsOn[i] <- paste(newdate, nightsummary$sleeponset_ts[i], sep=" ")
+      # -> Define two SWVs, adding both naps and naps+WASO to GGIR sleep-wake times -----------
+      onoffvector_allSIBoutsl <- wakeonly_vector
+      if (nrow(sibonoff_min_outsl) > 0){
+        for (i in 1:nrow(sibonoff_min_outsl)){ # Make all epochs within SIBs outside GGIR sleep/wake equal to one (representing sleep)
+          onoffvector_allSIBoutsl[(sibonoff_min_outsl[i,1]):(sibonoff_min_outsl[i,2])] <- 1
+        }
+      }
+
+      iterlength <- (length(onoffvector_allSIBoutsl)-napmin)/stepsize + 1
+      napscore <- replicate(iterlength,0) # Define an empty wake-only vector (all zeros)
+      for (i in 1:iterlength){
+        if ( sum(onoffvector_allSIBoutsl[((i-1)*stepsize+1):(((i-1)*stepsize+1)+napmin-1)])/napmin >= perc ){
+          napscore[i] <- 1
+        }
+      }
+
+      naploc <- which(napscore %in% 1) # gives vector location of all naps
+
+      onoffvector_GGIRnapwind <- onoffvector_cons
+      onoffvector_GGIRWASOnapwind <- onoffvector_sibs
+      if (length(naploc) > 0){
+        for (i in naploc){
+          napepochs <- ((i-1)*stepsize+1):(((i-1)*stepsize+1)+napmin)
+          onoffvector_GGIRnapwind[napepochs] <- 1
+          onoffvector_GGIRWASOnapwind[napepochs] <- 1
+        }
+      }
+
+      # -----------------------------------------------------------
+      # Sleep variables
+      # --------------------
+      # -> Extract sleep vars (nightsummary,TST_custom,SE_GGIR,SE_Custom,WASO_GGIR,WASO_Custom,naps)) ---------
+      nightsummary2 <- nightsummary2[nightsummary2$night %in% nightsummary$night,] # Exclude all nights not in 'nightsummary'
+
+      SE_GGIR <- nightsummary2[,"SleepDurationInSpt"] / nightsummary2[,"SptDuration"] # Calculate variables directly based on GGIR output
+      WASO_GGIR <- nightsummary2[,"SptDuration"] - nightsummary2[,"SleepDurationInSpt"]
+
+      # -> Calculate WASO, TST, SE, based on custom WASO calculation method (>WASOmin) ---------
+      # Bugfix ------
+      if (nrow(acceptedsibWASO) >= 1){
+        sibmeans <- rowMeans(acceptedsibWASO) # which are greater than offset row n and smaller than onset row n + 1
+        fix1acceptedsibWASO <- acceptedsibWASO
+        for (i in 1:length(sibmeans)){
+          if (sum(sibmeans[i] > nightsummary$offsetmin[-nrow(nightsummary)] & sibmeans[i] < nightsummary$onsetmin[-1]) > 0){
+            fix1acceptedsibWASO[i,] <- NA
           }
-          if (nightsummary$wakeup[i]<24) {
-            rftsOff[i] <- paste(dates[i], nightsummary$wakeup_ts[i], sep=" ")
+        }
+        FIXEDacceptedsibWASO <- fix1acceptedsibWASO[!is.na(fix1acceptedsibWASO[,1]),]
+        # ^^ Had to fix a bug with the acceptedsibWASO data.frame - won't affect anything earlier on in the code...
+      } else {
+        FIXEDacceptedsibWASO <- acceptedsibWASO
+      }
+      # Extract WASO and naps ------
+      WASOdf <- data.frame(night = nightsummary$night,WASO = 0) # create empty data.frame for WASO values
+      for (i in 1:nrow(nightsummary)){ # for each night
+
+        WASOoff <- FIXEDacceptedsibWASO[,2][FIXEDacceptedsibWASO[,2] >= nightsummary$onsetmin[i] & FIXEDacceptedsibWASO[,2] <= nightsummary$offsetmin[i]]
+        WASOon <- FIXEDacceptedsibWASO[,1][FIXEDacceptedsibWASO[,1] >= nightsummary$onsetmin[i] & FIXEDacceptedsibWASO[,1] <= nightsummary$offsetmin[i]]
+        # ^ find all sets of WASO within the on/off times of that night
+
+        if (sum(WASOoff) != 0 & sum(WASOon) != 0){ # If non-zero, write to WASOdf
+          WASOdf[i,"WASO"] <- sum(WASOoff-WASOon,na.rm=TRUE)
+        }
+      }
+
+      WASO_Custom <- (WASOdf[,2])/60
+      TST_Custom <- (nightsummary$offsetmin-nightsummary$onsetmin - WASO_Custom)/60
+      SE_Custom <- (nightsummary$offsetmin-nightsummary$onsetmin - WASO_Custom) / (nightsummary$offsetmin-nightsummary$onsetmin)
+
+      # Calculate naps
+      if (length(naploc) >= 1) {
+        endind <- c(which(diff(naploc) != 1),length(naploc)) # Get index of all starts and ends of vector nap locations
+        startind <- c(1,which(diff(naploc) != 1)+1)
+        naponoff <- data.frame(napstart = rep(NA,length(startind)),napend=NA) # Initialize
+        for (i in 1:length(startind)){ # Write nap start and end times to a df.
+          naponoff[i,1] <- naploc[startind[i]]
+          naponoff[i,2] <- naploc[endind[i]] + napmin
+        }
+        naps <- rep(0,nrow(nightsummary2)) # Initialize
+        for (i in 1:nrow(nightsummary2)){ # Sum all naps within each of the midnight-midnight periods
+          naponoffsub <- naponoff[naponoff[,1] < nightsummary2$night[i]*1440 & naponoff[,1] >= nightsummary2$night[i]*1440 - 1440,]
+          naps[i] <- (sum(naponoffsub[,2] - naponoffsub[,1]))/60
+        }
+      } else {
+        naps <- rep(0,nrow(nightsummary2))
+      }
+
+
+      # --------------------
+      # -> Check for GGIR onset / offset miscalculation --------
+      for (i in misclwindvec){
+        misclwinddata <- data.frame("participant" = rep(ppts[p],nrow(nightsummary)), night = nightsummary$night,"preon" = NA, "poston" = NA, "preoff" = NA, "postoff" = NA,
+                                    "misclwind" = i) # initiate dataframe
+        for (j in 1:nrow(misclwinddata)){
+
+          # pre-on
+          sibinpreonwind <- sibonoff_min_outsl[(sibonoff_min_outsl$siboffcont > nightsummary$onsetmin[j]-60*i) & (sibonoff_min_outsl$siboffcont <= nightsummary$onsetmin[j]),]
+          if (nrow(sibinpreonwind) > 0){ # check if any SIBs are within the misclassification window
+            if (sibinpreonwind[1,1] < nightsummary$onsetmin[j]-60*i){ # if first SIBon is outside window, call it start of window
+              sibinpreonwind[1,1] <- nightsummary$onsetmin[j]-60*i
+            }
+            misclwinddata$preon[j] <- sum(sibinpreonwind[,2] - sibinpreonwind[,1])/(60*i)
           } else {
-            newdate <- substr((as.POSIXlt.character(dates[i]) + 60*60*26),1,10)
-            rftsOff[i] <- paste(newdate, nightsummary$wakeup_ts[i], sep=" ")
+            misclwinddata$preon[j] <- 0
+          }
+
+          # post-off
+          sibinpostoffwind <- sibonoff_min_outsl[(sibonoff_min_outsl$siboncont < nightsummary$offsetmin[j]+60*i) & (sibonoff_min_outsl$siboncont >= nightsummary$offsetmin[j]),]
+          if (nrow(sibinpostoffwind) > 0){ # check if any SIBs are within the misclassification window
+            if (sibinpostoffwind[nrow(sibinpostoffwind),2] > nightsummary$offsetmin[j]+60*i){ # if last SIBoff is outside window, call it end of window
+              sibinpostoffwind[nrow(sibinpostoffwind),2] <- nightsummary$offsetmin[j]+60*i
+            }
+            misclwinddata$postoff[j] <- sum(sibinpostoffwind[,2] - sibinpostoffwind[,1])/(60*i)
+          } else {
+            misclwinddata$postoff[j] <- 0
+          }
+
+          sleepmin <- nightsummary$offsetmin[j] - nightsummary$onsetmin[j] # Check that GGIR sleep window is > misclwindow (else leave as NA)
+          if (sleepmin > i*60){
+
+            # post-on
+            sibinpostonwind <- sibonoff_min_insl[(sibonoff_min_insl$siboncont < nightsummary$onsetmin[j]+60*i) & (sibonoff_min_insl$siboncont >= nightsummary$onsetmin[j]),]
+            if (nrow(sibinpostonwind) > 0){ # check if any SIBs are within the misclassification window
+              if (sibinpostonwind[nrow(sibinpostonwind),2] > nightsummary$onsetmin[j]+60*i){ # if last SIBoff is outside window, call it end of window
+                sibinpostonwind[nrow(sibinpostonwind),2] <- nightsummary$onsetmin[j]+60*i
+              }
+              misclwinddata$poston[j] <- sum(sibinpostonwind[,2] - sibinpostonwind[,1])/(60*i)
+            } else {
+              misclwinddata$poston[j] <- 0
+            }
+
+            # pre-off
+            sibinpreoffwind <- sibonoff_min_insl[(sibonoff_min_insl$siboffcont > nightsummary$offsetmin[j]-60*i) & (sibonoff_min_insl$siboffcont <= nightsummary$offsetmin[j]),]
+            if (nrow(sibinpreoffwind) > 0){
+              if (sibinpreoffwind[1,1] < nightsummary$offsetmin[j]-60*i){ # if last SIBoff is outside window, call it start of window
+                sibinpreoffwind[1,1] <- nightsummary$offsetmin[j]-60*i
+              }
+              misclwinddata$preoff[j] <- sum(sibinpreoffwind[,2] - sibinpreoffwind[,1])/(60*i)
+            } else {
+              misclwinddata$preoff[j] <- 0
+            }
           }
         }
-        # isoTsOn <- GGIR::chartime2iso8601(rftsOn, tz=tz) # Re-format times as iso8601
-        # isoTsOff <- GGIR::chartime2iso8601(rftsOff, tz=tz)
-        isoTsOn <- GGIR::POSIXtime2iso8601(rftsOn, tz=tz) # Re-format times as iso8601
-        isoTsOff <- GGIR::POSIXtime2iso8601(rftsOff, tz=tz)
+        write.table(misclwinddata[,-7], misclfile, sep = ",", col.names = !file.exists(misclfile), append = TRUE, row.names=FALSE) # write
+      }
 
-        nightsummary$onsetmin <- round(as.numeric(parsedate::parse_iso_8601(isoTsOn))/60) - originmin
-        nightsummary$offsetmin <- round(as.numeric(parsedate::parse_iso_8601(isoTsOff))/60) - originmin
+      misclwinddata[is.na(misclwinddata)] <- 1 # Re-write all NA cases to 1 (cases where window > sleep duration)
+      misclnights <- misclwinddata$night[(misclwinddata$preon > misclperc_outsl)|(misclwinddata$poston < misclperc_insl)|
+                                           (misclwinddata$preoff < misclperc_insl)|(misclwinddata$postoff > misclperc_outsl)] # Find all miscalculated nights
+      miscalculated <- misclwinddata$night %in% misclnights
 
-        nightsummary <- nightsummary[(nightsummary$offsetmin - nightsummary$onsetmin) < 16*60,] # Exclude all nightly 'sleep' times > 16h
-        if (nrow(nightsummary) < 1){ # If nightsummary is now empty, skip to next line and write an error.
-          error_vec <- c(ppts[p],na_vec)
-          write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
-                      append = TRUE, row.names=FALSE) # Write Error to SRI.csv
-          next
+      # --------------------
+      # -> Call missing nights 'NA' in SWVs ---------
+      nightSeq <- 1:maxdays
+      missingnights <- nightSeq[!(nightSeq %in% nightsummary$night)]
+      fMidIn <- round((24-originclock)*60) # Find index of first midnight
+      if (length(missingnights) > 0){
+        for (i in missingnights){
+          NAon <- fMidIn-719+(i-1)*1440
+          NAoff <- fMidIn+720+(i-1)*1440
+
+          if (NAoff > length(wakeonly_vector)) { # If offset of last night is longer than SWV length, re-write to SWV length
+            NAoff <- length(wakeonly_vector)
+          }
+          if (NAon < 1) { # If offset of last night is longer than SWV length, re-write to SWV length
+            NAon = 1
+          }
+          print(paste0(NAon, " ", NAoff))
+          onoffvector_cons[NAon:NAoff] <- NA
+          onoffvector_sibs[NAon:NAoff] <- NA
+          onoffvector_GGIRnapwind[NAon:NAoff] <- NA
+          onoffvector_GGIRWASOnapwind[NAon:NAoff] <- NA
         }
+      }
 
-        onoffvector_cons <- wakeonly_vector
-        for (i in 1:nrow(nightsummary)){ # Make all epochs between onset/offset times equal to one (representing sleep)
-          onoffvector_cons[(nightsummary$onsetmin[i]):(nightsummary$offsetmin[i])] <- 1
+      # --------------------
+      # -> Calculate SWVs after removal of miscalculated onset/offset nights --------
+      misclnightscount <- length(misclnights) # Number of nights of miscalculated data
+
+      onoffvector_cons_miscl <- onoffvector_cons
+      onoffvector_sibs_miscl <- onoffvector_sibs
+      onoffvector_GGIRnapwind_miscl <- onoffvector_GGIRnapwind
+      onoffvector_GGIRWASOnapwind_miscl <- onoffvector_GGIRWASOnapwind
+
+      if (length(misclnights) > 0){ # Call all 24h periods with miscalculated sleep onset/offset times 'NA'
+        for (i in misclnights){
+
+          NAon <- fMidIn-719+(i-1)*1440
+          NAoff <- fMidIn+720+(i-1)*1440
+
+          onoffvector_cons_miscl[NAon:NAoff] <- NA
+          onoffvector_sibs_miscl[NAon:NAoff] <- NA
+          onoffvector_GGIRnapwind_miscl[NAon:NAoff] <- NA
+          onoffvector_GGIRWASOnapwind_miscl[NAon:NAoff] <- NA
+
         }
+      }
 
-        # -> Write required SIB data to df, re-format  --------------------
-        sibonoff <- sib.cla.sum[,c("sib.onset.time","sib.end.time")] # Subset sib onset and offset times
-        sibonoff <- sibonoff[!sibonoff$sib.onset.time == "",] # Check for and remove all empty sibonoff values
+      # --------------------
+      # -> Call non-wear periods NA ---------
+      pptTV <- (seq(from=originmin,by=1,length.out=length(onoffvector_cons)))*60 # generate time vector for SWV
+      nonWearBool <- rep(FALSE, length(onoffvector_cons)) # Make a boolean non-wear vector, equal length to SWV
 
-        siboncont <- round((as.numeric(parsedate::parse_iso_8601(sibonoff[,1])))/60) - originmin # Convert each set to UNIXmin
-        siboffcont <- round((as.numeric(parsedate::parse_iso_8601(sibonoff[,2])))/60) - originmin
-        sibonoff_min1 <- data.frame(siboncont, siboffcont) # Get a data frame of sib onset/offset in UNIXmin
-        sibonoff_min <- sibonoff_min1[sibonoff_min1[,1] > 0,] # Remove any negative value (for SIB onsets outside SRI days)
-        sibonoff_min <- sibonoff_min[sibonoff_min[,2] < length(wakeonly_vector),] # Remove all SIB values outside the range of the swv used throughout.
+      onUNIX <- as.numeric(parsedate::parse_iso_8601(isoTsOn)) # Get sleep window onset and offset times as UNIX
+      offUNIX <- as.numeric(parsedate::parse_iso_8601(isoTsOff))
+      pptTVoutslBl <- rep(TRUE, length(pptTV))
 
-        # -> Define SWV based on GGIR sleep times and WASO (based on SIBs) --------------
-        sib_bool <- logical(nrow(sibonoff_min)) # make a vector of boolean zeros
-        for (i in 1:nrow(nightsummary)) { # for each day
-          for (j in 1:nrow(sibonoff_min)){ # for each row of sib
-            if ( # generate a TRUE value for every sibonset/offset pair with either onset or offset within a sleep-wake period
-              (
-                (sibonoff_min[j,1] >= nightsummary$onsetmin[i])
-                &&
-                (sibonoff_min[j,1] <= nightsummary$offsetmin[i])
+      if(!nonWearInGGIRsleep){ # If we don't want to include non-wear during GGIR sleep windows:
+        for (j in 1:length(onUNIX)) { # Get boolean of all times outside sleep window
+          pptTVoutslBl[pptTV > onUNIX[j] & pptTV <= offUNIX[j]] <- FALSE
+        }
+      }
+
+      if (use.GGIRnonwear) {
+        ggirNonWear <- sum(M$metalong$nonwearscore)
+        if (ggirNonWear > 0) { # If GGIR non-wear detection has been applied, use these values
+
+          nwTS <- M$metalong$timestamp[M$metalong$nonwearscore >= 2] # Take each TS to represent the centre of a 15 minute window
+
+          nwTSunix <- as.numeric(parsedate::parse_iso_8601(nwTS))
+
+          nwTSunixOn <- nwTSunix - 7.5*60
+          nwTSunixOff <- nwTSunix + 7.5*60
+
+          for (j in 1:length(nwTSunix)){
+            nonWearBool[pptTV > nwTSunixOn[j] & pptTV <= nwTSunixOff[j]] <- TRUE
+          }
+
+          nonWearBool[!pptTVoutslBl] <- FALSE # Make all non-wear inside sleep window = FALSE
+
+          onoffvector_cons[nonWearBool] <- NA # Re-write non-wear times as NA
+          onoffvector_sibs[nonWearBool] <- NA
+          onoffvector_GGIRnapwind[nonWearBool] <- NA
+          onoffvector_GGIRWASOnapwind[nonWearBool] <- NA
+          onoffvector_cons_miscl[nonWearBool] <- NA
+          onoffvector_sibs_miscl[nonWearBool] <- NA
+          onoffvector_GGIRnapwind_miscl[nonWearBool] <- NA
+          onoffvector_GGIRWASOnapwind_miscl[nonWearBool] <- NA
+
+        } else { # Else apply custom non-wear detection
+          if (use.customnonwear){
+            if (length(nwdir) != 0) {
+              nwFls <- list.files(nwdir, pattern=".csv", full.names=TRUE) # List all non-wear files
+              nwFls2 <- stringr::str_replace_all(nwFls, "[:punct:]|[:space:]", "_")
+
+              ppt_redu <- sub(".RData","",ppts[p])
+              ppt_redu <- sub(".csv","",ppt_redu)
+              ppt_redu2 <- stringr::str_replace_all(ppt_redu, "[:punct:]|[:space:]", "_")
+
+              appt_nwdir <- nwFls[grepl(ppt_redu2, nwFls2)]
+              if (length(appt_nwdir) > 1) {
+                appt_nwdir <- appt_nwdir[1]
+                print(paste0("Duplicate participant ID:", ppts[p]))
+              }
+
+              apptNW <- read.csv(appt_nwdir)
+              int <- apptNW$ts[2] - apptNW$ts[1] # Interval between non-wear timestamps
+
+              for (j in 1:nrow(apptNW)){
+                if (apptNW$nonwear[j]){
+                  nonWearBool[pptTV > apptNW$ts[j] & pptTV <= apptNW$ts[j]+int] <- TRUE
+                }
+              }
+
+              nonWearBool[!pptTVoutslBl] <- FALSE # Make all non-wear inside sleep window = FALSE
+
+              onoffvector_cons[nonWearBool] <- NA # Re-write non-wear times as NA
+              onoffvector_sibs[nonWearBool] <- NA
+              onoffvector_GGIRnapwind[nonWearBool] <- NA
+              onoffvector_GGIRWASOnapwind[nonWearBool] <- NA
+              onoffvector_cons_miscl[nonWearBool] <- NA
+              onoffvector_sibs_miscl[nonWearBool] <- NA
+              onoffvector_GGIRnapwind_miscl[nonWearBool] <- NA
+              onoffvector_GGIRWASOnapwind_miscl[nonWearBool] <- NA
+
+            } else {
+              print(paste0(ppts[p],
+                           ": No non-wear detected. If custom non-wear detection is required (non-GGIR), use 'nonwear_detect' on raw or downsampled accelerometer data to detect non-wear for inclusion in SRI calculation.")
               )
-              ||
-              (
-                (sibonoff_min[j,2] >= nightsummary$onsetmin[i])
-                &&
-                (sibonoff_min[j,2] <= nightsummary$offsetmin[i])
-              )
-            ){
-              sib_bool[j] <- TRUE # Set equivalent boolean element to TRUE
             }
           }
         }
+      }
 
-        sibonoff_min_insl <- sibonoff_min[sib_bool,] # all sets of sib onset/offset within sleep onset/offset times
-        sibonoff_min_outsl <- sibonoff_min[!sib_bool,] # all sets of sib onset/offset outside sleep onset/offset times
+      # --------------------
+      # -> Remove all days with more than 6h NA (overwrite them as NA) ---------
+      hto12 <- 12 - originclock
+      sec12ts <- originIso + hto12*60*60
+      fir12ts <- sec12ts - 24*60*60
+      las12ts <- fir12ts + (maxdays + 2)*24*60*60
+      setof12s <- as.numeric(seq(from=fir12ts, to=las12ts, by=24*60*60))
 
-        sibOFFON_min_insl <- as.data.frame(cbind( # Rearrange vector, for ease of difference calculating. Glue first onset and last offset to top and tail.
-          c(nightsummary$onsetmin[1],sibonoff_min_insl[,2]),
-          c(sibonoff_min_insl[,1],nightsummary$offsetmin[length(nightsummary$offsetmin)])
-        ))
-        diff <- sibOFFON_min_insl[,2] - sibOFFON_min_insl[,1] # Calculate the SIB gaps (offset - previous onset)
-        acceptedsibWASO <- sibOFFON_min_insl[(diff >= WASOmin & diff < max(nightsummary$wakeup-nightsummary$sleeponset)*60 ),]
-        # Keep all SIB gaps greater than WASOmin and smaller than the longest sleep duration (i.e., wake during the day)
+      for (j in 1:(length(setof12s)-1)){
+        dayBl <- pptTV > setof12s[j] & pptTV <= setof12s[j+1] # Boolean referencing each day
 
-        onoffvector_sibs <- onoffvector_cons
-        if (nrow(acceptedsibWASO) > 0){
-          for (i in 1:nrow(acceptedsibWASO)){ # Make all epochs between accepted SIB gaps equal to zero (representing wake)
-            onoffvector_sibs[(acceptedsibWASO[i,1]):(acceptedsibWASO[i,2])] <- 0
-          }
+        if (sum(is.na(onoffvector_cons[dayBl])) > 1440/24*exclNAhrs){
+          onoffvector_cons[dayBl] <- NA
         }
-
-        # -> Define two SWVs, adding both naps and naps+WASO to GGIR sleep-wake times -----------
-        onoffvector_allSIBoutsl <- wakeonly_vector
-        if (nrow(sibonoff_min_outsl) > 0){
-          for (i in 1:nrow(sibonoff_min_outsl)){ # Make all epochs within SIBs outside GGIR sleep/wake equal to one (representing sleep)
-            onoffvector_allSIBoutsl[(sibonoff_min_outsl[i,1]):(sibonoff_min_outsl[i,2])] <- 1
-          }
+        if (sum(is.na(onoffvector_sibs[dayBl])) > 1440/24*exclNAhrs){
+          onoffvector_sibs[dayBl] <- NA
         }
-
-        iterlength <- (length(onoffvector_allSIBoutsl)-napmin)/stepsize + 1
-        napscore <- replicate(iterlength,0) # Define an empty wake-only vector (all zeros)
-        for (i in 1:iterlength){
-          if ( sum(onoffvector_allSIBoutsl[((i-1)*stepsize+1):(((i-1)*stepsize+1)+napmin-1)])/napmin >= perc ){
-            napscore[i] <- 1
-          }
+        if (sum(is.na(onoffvector_GGIRnapwind[dayBl])) > 1440/24*exclNAhrs){
+          onoffvector_GGIRnapwind[dayBl] <- NA
         }
-
-        naploc <- which(napscore %in% 1) # gives vector location of all naps
-
-        onoffvector_GGIRnapwind <- onoffvector_cons
-        onoffvector_GGIRWASOnapwind <- onoffvector_sibs
-        if (length(naploc) > 0){
-          for (i in naploc){
-            napepochs <- ((i-1)*stepsize+1):(((i-1)*stepsize+1)+napmin)
-            onoffvector_GGIRnapwind[napepochs] <- 1
-            onoffvector_GGIRWASOnapwind[napepochs] <- 1
-          }
+        if (sum(is.na(onoffvector_GGIRWASOnapwind[dayBl])) > 1440/24*exclNAhrs){
+          onoffvector_GGIRWASOnapwind[dayBl] <- NA
         }
-
-        # -----------------------------------------------------------
-        # Sleep variables
-        # --------------------
-        # -> Extract sleep vars (nightsummary,TST_custom,SE_GGIR,SE_Custom,WASO_GGIR,WASO_Custom,naps)) ---------
-        nightsummary2 <- nightsummary2[nightsummary2$night %in% nightsummary$night,] # Exclude all nights not in 'nightsummary'
-
-        SE_GGIR <- nightsummary2[,"SleepDurationInSpt"] / nightsummary2[,"SptDuration"] # Calculate variables directly based on GGIR output
-        WASO_GGIR <- nightsummary2[,"SptDuration"] - nightsummary2[,"SleepDurationInSpt"]
-
-        # -> Calculate WASO, TST, SE, based on custom WASO calculation method (>WASOmin) ---------
-        # Bugfix ------
-        if (nrow(acceptedsibWASO) >= 1){
-          sibmeans <- rowMeans(acceptedsibWASO) # which are greater than offset row n and smaller than onset row n + 1
-          fix1acceptedsibWASO <- acceptedsibWASO
-          for (i in 1:length(sibmeans)){
-            if (sum(sibmeans[i] > nightsummary$offsetmin[-nrow(nightsummary)] & sibmeans[i] < nightsummary$onsetmin[-1]) > 0){
-              fix1acceptedsibWASO[i,] <- NA
-            }
-          }
-          FIXEDacceptedsibWASO <- fix1acceptedsibWASO[!is.na(fix1acceptedsibWASO[,1]),]
-          # ^^ Had to fix a bug with the acceptedsibWASO data.frame - won't affect anything earlier on in the code...
-        } else {
-          FIXEDacceptedsibWASO <- acceptedsibWASO
+        if (sum(is.na(onoffvector_cons_miscl[dayBl])) > 1440/24*exclNAhrs){
+          onoffvector_cons_miscl[dayBl] <- NA
         }
-        # Extract WASO and naps ------
-        WASOdf <- data.frame(night = nightsummary$night,WASO = 0) # create empty data.frame for WASO values
-        for (i in 1:nrow(nightsummary)){ # for each night
-
-          WASOoff <- FIXEDacceptedsibWASO[,2][FIXEDacceptedsibWASO[,2] >= nightsummary$onsetmin[i] & FIXEDacceptedsibWASO[,2] <= nightsummary$offsetmin[i]]
-          WASOon <- FIXEDacceptedsibWASO[,1][FIXEDacceptedsibWASO[,1] >= nightsummary$onsetmin[i] & FIXEDacceptedsibWASO[,1] <= nightsummary$offsetmin[i]]
-          # ^ find all sets of WASO within the on/off times of that night
-
-          if (sum(WASOoff) != 0 & sum(WASOon) != 0){ # If non-zero, write to WASOdf
-            WASOdf[i,"WASO"] <- sum(WASOoff-WASOon,na.rm=TRUE)
-          }
+        if (sum(is.na(onoffvector_sibs_miscl[dayBl])) > 1440/24*exclNAhrs){
+          onoffvector_sibs_miscl[dayBl] <- NA
         }
-
-        WASO_Custom <- (WASOdf[,2])/60
-        TST_Custom <- (nightsummary$offsetmin-nightsummary$onsetmin - WASO_Custom)/60
-        SE_Custom <- (nightsummary$offsetmin-nightsummary$onsetmin - WASO_Custom) / (nightsummary$offsetmin-nightsummary$onsetmin)
-
-        # Calculate naps
-        if (length(naploc) >= 1) {
-          endind <- c(which(diff(naploc) != 1),length(naploc)) # Get index of all starts and ends of vector nap locations
-          startind <- c(1,which(diff(naploc) != 1)+1)
-          naponoff <- data.frame(napstart = rep(NA,length(startind)),napend=NA) # Initialize
-          for (i in 1:length(startind)){ # Write nap start and end times to a df.
-            naponoff[i,1] <- naploc[startind[i]]
-            naponoff[i,2] <- naploc[endind[i]] + napmin
-          }
-          naps <- rep(0,nrow(nightsummary2)) # Initialize
-          for (i in 1:nrow(nightsummary2)){ # Sum all naps within each of the midnight-midnight periods
-            naponoffsub <- naponoff[naponoff[,1] < nightsummary2$night[i]*1440 & naponoff[,1] >= nightsummary2$night[i]*1440 - 1440,]
-            naps[i] <- (sum(naponoffsub[,2] - naponoffsub[,1]))/60
-          }
-        } else {
-          naps <- rep(0,nrow(nightsummary2))
+        if (sum(is.na(onoffvector_GGIRnapwind_miscl[dayBl])) > 1440/24*exclNAhrs){
+          onoffvector_GGIRnapwind_miscl[dayBl] <- NA
         }
-
-
-        # --------------------
-        # -> Check for GGIR onset / offset miscalculation --------
-        for (i in misclwindvec){
-          misclwinddata <- data.frame("participant" = rep(ppts[p],nrow(nightsummary)), night = nightsummary$night,"preon" = NA, "poston" = NA, "preoff" = NA, "postoff" = NA,
-                                      "misclwind" = i) # initiate dataframe
-          for (j in 1:nrow(misclwinddata)){
-
-            # pre-on
-            sibinpreonwind <- sibonoff_min_outsl[(sibonoff_min_outsl$siboffcont > nightsummary$onsetmin[j]-60*i) & (sibonoff_min_outsl$siboffcont <= nightsummary$onsetmin[j]),]
-            if (nrow(sibinpreonwind) > 0){ # check if any SIBs are within the misclassification window
-              if (sibinpreonwind[1,1] < nightsummary$onsetmin[j]-60*i){ # if first SIBon is outside window, call it start of window
-                sibinpreonwind[1,1] <- nightsummary$onsetmin[j]-60*i
-              }
-              misclwinddata$preon[j] <- sum(sibinpreonwind[,2] - sibinpreonwind[,1])/(60*i)
-            } else {
-              misclwinddata$preon[j] <- 0
-            }
-
-            # post-off
-            sibinpostoffwind <- sibonoff_min_outsl[(sibonoff_min_outsl$siboncont < nightsummary$offsetmin[j]+60*i) & (sibonoff_min_outsl$siboncont >= nightsummary$offsetmin[j]),]
-            if (nrow(sibinpostoffwind) > 0){ # check if any SIBs are within the misclassification window
-              if (sibinpostoffwind[nrow(sibinpostoffwind),2] > nightsummary$offsetmin[j]+60*i){ # if last SIBoff is outside window, call it end of window
-                sibinpostoffwind[nrow(sibinpostoffwind),2] <- nightsummary$offsetmin[j]+60*i
-              }
-              misclwinddata$postoff[j] <- sum(sibinpostoffwind[,2] - sibinpostoffwind[,1])/(60*i)
-            } else {
-              misclwinddata$postoff[j] <- 0
-            }
-
-            sleepmin <- nightsummary$offsetmin[j] - nightsummary$onsetmin[j] # Check that GGIR sleep window is > misclwindow (else leave as NA)
-            if (sleepmin > i*60){
-
-              # post-on
-              sibinpostonwind <- sibonoff_min_insl[(sibonoff_min_insl$siboncont < nightsummary$onsetmin[j]+60*i) & (sibonoff_min_insl$siboncont >= nightsummary$onsetmin[j]),]
-              if (nrow(sibinpostonwind) > 0){ # check if any SIBs are within the misclassification window
-                if (sibinpostonwind[nrow(sibinpostonwind),2] > nightsummary$onsetmin[j]+60*i){ # if last SIBoff is outside window, call it end of window
-                  sibinpostonwind[nrow(sibinpostonwind),2] <- nightsummary$onsetmin[j]+60*i
-                }
-                misclwinddata$poston[j] <- sum(sibinpostonwind[,2] - sibinpostonwind[,1])/(60*i)
-              } else {
-                misclwinddata$poston[j] <- 0
-              }
-
-              # pre-off
-              sibinpreoffwind <- sibonoff_min_insl[(sibonoff_min_insl$siboffcont > nightsummary$offsetmin[j]-60*i) & (sibonoff_min_insl$siboffcont <= nightsummary$offsetmin[j]),]
-              if (nrow(sibinpreoffwind) > 0){
-                if (sibinpreoffwind[1,1] < nightsummary$offsetmin[j]-60*i){ # if last SIBoff is outside window, call it start of window
-                  sibinpreoffwind[1,1] <- nightsummary$offsetmin[j]-60*i
-                }
-                misclwinddata$preoff[j] <- sum(sibinpreoffwind[,2] - sibinpreoffwind[,1])/(60*i)
-              } else {
-                misclwinddata$preoff[j] <- 0
-              }
-            }
-          }
-          write.table(misclwinddata[,-7], misclfile, sep = ",", col.names = !file.exists(misclfile), append = TRUE, row.names=FALSE) # write
+        if (sum(is.na(onoffvector_GGIRWASOnapwind_miscl[dayBl])) > 1440/24*exclNAhrs){
+          onoffvector_GGIRWASOnapwind_miscl[dayBl] <- NA
         }
+      }
 
-        misclwinddata[is.na(misclwinddata)] <- 1 # Re-write all NA cases to 1 (cases where window > sleep duration)
-        misclnights <- misclwinddata$night[(misclwinddata$preon > misclperc_outsl)|(misclwinddata$poston < misclperc_insl)|
-                                             (misclwinddata$preoff < misclperc_insl)|(misclwinddata$postoff > misclperc_outsl)] # Find all miscalculated nights
-        miscalculated <- misclwinddata$night %in% misclnights
+      # --------------------
+      # -> Calculate SRI: --------
+      # Using onset and offset times only ---------
+      swv1_1 <- onoffvector_cons[1:(length(onoffvector_cons)-(24*60))]
+      swv2_1 <- onoffvector_cons[((24*60)+1):(length(onoffvector_cons))]
+      SRI_onoff <- -100 + 200*(1-mean(abs(swv2_1-swv1_1),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
+      # Using onset, offset, and SIB gaps >= WASOmin within onset/offset periods ---------
+      swv1_2 <- onoffvector_sibs[1:( length(onoffvector_sibs)-(24*60) )]
+      swv2_2 <- onoffvector_sibs[((24*60)+1):(length(onoffvector_sibs))]
+      SRI_onoffWASO <- -100 + 200*(1-mean(abs(swv2_2-swv1_2),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
 
-        # --------------------
-        # -> Call missing nights 'NA' in SWVs ---------
-        nightSeq <- 1:maxdays
-        missingnights <- nightSeq[!(nightSeq %in% nightsummary$night)]
-        fMidIn <- round((24-originclock)*60) # Find index of first midnight
-        if (length(missingnights) > 0){
-          for (i in missingnights){
-            NAon <- fMidIn-719+(i-1)*1440
-            NAoff <- fMidIn+720+(i-1)*1440
+      # Using onset, offset + nap window ---------
+      swv1_6 <- onoffvector_GGIRnapwind[1:(length(onoffvector_GGIRnapwind)-(24*60))]
+      swv2_6 <- onoffvector_GGIRnapwind[((24*60)+1):length(onoffvector_GGIRnapwind)]
+      SRI_onoffnap_wind <- -100 + 200*(1-mean(abs(swv2_6-swv1_6),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
 
-            if (NAoff > length(wakeonly_vector)) { # If offset of last night is longer than SWV length, re-write to SWV length
-              NAoff <- length(wakeonly_vector)
-            }
-            if (NAon < 1) { # If offset of last night is longer than SWV length, re-write to SWV length
-              NAon = 1
-            }
-            print(paste0(NAon, " ", NAoff))
-            onoffvector_cons[NAon:NAoff] <- NA
-            onoffvector_sibs[NAon:NAoff] <- NA
-            onoffvector_GGIRnapwind[NAon:NAoff] <- NA
-            onoffvector_GGIRWASOnapwind[NAon:NAoff] <- NA
+      # Using onset, offset + WASO + nap window ---------
+      swv1_7 <- onoffvector_GGIRWASOnapwind[1:(length(onoffvector_GGIRWASOnapwind)-(24*60))]
+      swv2_7 <- onoffvector_GGIRWASOnapwind[((24*60)+1):length(onoffvector_GGIRWASOnapwind)]
+      SRI_onoffWASOnap_wind <- -100 + 200*(1-mean(abs(swv2_7-swv1_7),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
+
+      # As above, but after removal of miscalculated nights ---------
+      swv1_8 <- onoffvector_cons_miscl[1:(length(onoffvector_cons_miscl)-(24*60) )]
+      swv2_8 <- onoffvector_cons_miscl[((24*60)+1):(length(onoffvector_cons_miscl))]
+      misclSRI_onoff <- -100 + 200*(1-mean(abs(swv2_8-swv1_8),na.rm=TRUE))
+
+      swv1_9 <- onoffvector_sibs_miscl[1:( length(onoffvector_sibs_miscl)-(24*60) )]
+      swv2_9 <- onoffvector_sibs_miscl[((24*60)+1):(length(onoffvector_sibs_miscl))]
+      misclSRI_onoffWASO <- -100 + 200*(1-mean(abs(swv2_9-swv1_9),na.rm=TRUE))
+
+      swv1_10 <- onoffvector_GGIRnapwind_miscl[1:(length(onoffvector_GGIRnapwind_miscl)-(24*60))]
+      swv2_10 <- onoffvector_GGIRnapwind_miscl[((24*60)+1):length(onoffvector_GGIRnapwind_miscl)]
+      misclSRI_onoffnap_wind <- -100 + 200*(1-mean(abs(swv2_10-swv1_10),na.rm=TRUE))
+
+      swv1_11 <- onoffvector_GGIRWASOnapwind_miscl[1:(length(onoffvector_GGIRWASOnapwind_miscl)-(24*60))]
+      swv2_11 <- onoffvector_GGIRWASOnapwind_miscl[((24*60)+1):length(onoffvector_GGIRWASOnapwind_miscl)]
+      misclSRI_onoffWASOnap_wind <- -100 + 200*(1-mean(abs(swv2_11-swv1_11),na.rm=TRUE))
+
+      # --------------------
+      # -> Check SRIdays for each SRI calculation, find those w/ <= 4 days overlapping data, re-label as NA ---------
+      swv1.li <- list(swv1_1, swv1_2, swv1_6, swv1_7, swv1_8, swv1_9, swv1_10, swv1_11) # List all SWVs used for SRI calc
+      swv2.li <- list(swv2_1, swv2_2, swv2_6, swv2_7, swv2_8, swv2_9, swv2_10, swv2_11)
+
+      SRIdays.li <- list()
+      for (i in 1:length(swv1.li)) {
+        SRIdays.li[[i]] <- sum(!is.na(swv1.li[[i]]*swv2.li[[i]]))/24/60
+      }
+
+      # --------------------
+      # -> Choose required SRI score and 'SRIdays' ----------
+      SRIvec <- c(SRI_onoff,SRI_onoffWASO,SRI_onoffnap_wind,SRI_onoffWASOnap_wind,
+                  misclSRI_onoff,misclSRI_onoffWASO,misclSRI_onoffnap_wind,misclSRI_onoffWASOnap_wind)
+
+      SRIvec[SRIdays.li < minSRIdays] <- NA # Call all SRI values with fewer than 4 days NA
+
+      t.nap <- c(F,F,T,T,F,F,T,T)
+      if (use.naps == FALSE){
+        t.nap <- !t.nap
+      }
+      t.WASO <- c(F,T,F,T,F,T,F,T)
+
+      if (use.WASO == FALSE){
+        t.WASO <- !t.WASO
+      }
+
+      t.miscal <- c(F,F,F,F,T,T,T,T)
+      if (use.miscal == FALSE){
+        t.miscal <- !t.miscal
+      }
+      t.SRI <- t.nap*t.WASO*t.miscal
+      t.SRI <- as.logical(t.SRI)
+      SRI <- SRIvec[t.SRI]
+      SRIdays <- SRIdays.li[[which(t.SRI)]]
+
+      # --------------------
+      # -> Calculate and write SWVs for each SRI version ---------
+      if (wr.SWV == TRUE){
+        # Extract the SWV on/off values as UNIXtime, in the same format as the light data timestamps
+        ts1 <- originmin*60 # Get first timestamp
+
+        SWVlist <- list(onoffvector_cons,onoffvector_sibs,onoffvector_GGIRnapwind,onoffvector_GGIRWASOnapwind,
+                        onoffvector_cons_miscl,onoffvector_sibs_miscl,onoffvector_GGIRnapwind_miscl,
+                        onoffvector_GGIRWASOnapwind_miscl) # Make a list of all SWVs
+        names(SWVlist) <- c("onoff", "onoff_WASO", "onoff_nap", "onoff_WASOnap",
+                            "mclonoff", "mclonoff_WASO", "mclonoff_nap", "mclonoff_WASOnap")
+
+        sav <- 0
+        for (i in 1:length(SWVlist)){
+          ts <- sequence(length(SWVlist[[i]]), ts1, 60) # Generate a vector of timestamps
+
+          ts1df <- data.frame(trans = SWVlist[[i]][1],t = ts1) # First timestamp
+          tsenddf <- data.frame(trans = SWVlist[[i]][length(SWVlist[[i]])],t = ts[length(ts)]) # Last timestamp
+
+          ont <- ts[which(diff(SWVlist[[i]]) == 1)+1] # Extract on times
+          offt <- ts[which(diff(SWVlist[[i]]) == -1)+1] # Extract off times
+
+          if (length(ont) == 0 | length(offt) == 0){
+            print(paste0("Error: No sleep-wake transitions are present, ", ppts[p]))
+            break
           }
-        }
 
-        # --------------------
-        # -> Calculate SWVs after removal of miscalculated onset/offset nights --------
-        misclnightscount <- length(misclnights) # Number of nights of miscalculated data
+          ondf <- data.frame(trans = 1, t = ont)
+          offdf <- data.frame(trans = 0,t = offt)
 
-        onoffvector_cons_miscl <- onoffvector_cons
-        onoffvector_sibs_miscl <- onoffvector_sibs
-        onoffvector_GGIRnapwind_miscl <- onoffvector_GGIRnapwind
-        onoffvector_GGIRWASOnapwind_miscl <- onoffvector_GGIRWASOnapwind
-
-        if (length(misclnights) > 0){ # Call all 24h periods with miscalculated sleep onset/offset times 'NA'
-          for (i in misclnights){
-
-            NAon <- fMidIn-719+(i-1)*1440
-            NAoff <- fMidIn+720+(i-1)*1440
-
-            onoffvector_cons_miscl[NAon:NAoff] <- NA
-            onoffvector_sibs_miscl[NAon:NAoff] <- NA
-            onoffvector_GGIRnapwind_miscl[NAon:NAoff] <- NA
-            onoffvector_GGIRWASOnapwind_miscl[NAon:NAoff] <- NA
-
-          }
-        }
-
-        # --------------------
-        # -> Call non-wear periods NA ---------
-        pptTV <- (seq(from=originmin,by=1,length.out=length(onoffvector_cons)))*60 # generate time vector for SWV
-        nonWearBool <- rep(FALSE, length(onoffvector_cons)) # Make a boolean non-wear vector, equal length to SWV
-
-        onUNIX <- as.numeric(parsedate::parse_iso_8601(isoTsOn)) # Get sleep window onset and offset times as UNIX
-        offUNIX <- as.numeric(parsedate::parse_iso_8601(isoTsOff))
-        pptTVoutslBl <- rep(TRUE, length(pptTV))
-
-        if(!nonWearInGGIRsleep){ # If we don't want to include non-wear during GGIR sleep windows:
-          for (j in 1:length(onUNIX)) { # Get boolean of all times outside sleep window
-            pptTVoutslBl[pptTV > onUNIX[j] & pptTV <= offUNIX[j]] <- FALSE
-          }
-        }
-
-        if (use.GGIRnonwear) {
-          ggirNonWear <- sum(M$metalong$nonwearscore)
-          if (ggirNonWear > 0) { # If GGIR non-wear detection has been applied, use these values
-
-            nwTS <- M$metalong$timestamp[M$metalong$nonwearscore >= 2] # Take each TS to represent the centre of a 15 minute window
-
-            nwTSunix <- as.numeric(parsedate::parse_iso_8601(nwTS))
-
-            nwTSunixOn <- nwTSunix - 7.5*60
-            nwTSunixOff <- nwTSunix + 7.5*60
-
-            for (j in 1:length(nwTSunix)){
-              nonWearBool[pptTV > nwTSunixOn[j] & pptTV <= nwTSunixOff[j]] <- TRUE
-            }
-
-            nonWearBool[!pptTVoutslBl] <- FALSE # Make all non-wear inside sleep window = FALSE
-
-            onoffvector_cons[nonWearBool] <- NA # Re-write non-wear times as NA
-            onoffvector_sibs[nonWearBool] <- NA
-            onoffvector_GGIRnapwind[nonWearBool] <- NA
-            onoffvector_GGIRWASOnapwind[nonWearBool] <- NA
-            onoffvector_cons_miscl[nonWearBool] <- NA
-            onoffvector_sibs_miscl[nonWearBool] <- NA
-            onoffvector_GGIRnapwind_miscl[nonWearBool] <- NA
-            onoffvector_GGIRWASOnapwind_miscl[nonWearBool] <- NA
-
-          } else { # Else apply custom non-wear detection
-            if (use.customnonwear){
-              if (length(nwdir) != 0) {
-                nwFls <- list.files(nwdir, pattern=".csv", full.names=TRUE) # List all non-wear files
-                nwFls2 <- stringr::str_replace_all(nwFls, "[:punct:]|[:space:]", "_")
-
-                ppt_redu <- sub(".RData","",ppts[p])
-                ppt_redu <- sub(".csv","",ppt_redu)
-                ppt_redu2 <- stringr::str_replace_all(ppt_redu, "[:punct:]|[:space:]", "_")
-
-                appt_nwdir <- nwFls[grepl(ppt_redu2, nwFls2)]
-                if (length(appt_nwdir) > 1) {
-                  appt_nwdir <- appt_nwdir[1]
-                  print(paste0("Duplicate participant ID:", ppts[p]))
-                }
-
-                apptNW <- read.csv(appt_nwdir)
-                int <- apptNW$ts[2] - apptNW$ts[1] # Interval between non-wear timestamps
-
-                for (j in 1:nrow(apptNW)){
-                  if (apptNW$nonwear[j]){
-                    nonWearBool[pptTV > apptNW$ts[j] & pptTV <= apptNW$ts[j]+int] <- TRUE
-                  }
-                }
-
-                nonWearBool[!pptTVoutslBl] <- FALSE # Make all non-wear inside sleep window = FALSE
-
-                onoffvector_cons[nonWearBool] <- NA # Re-write non-wear times as NA
-                onoffvector_sibs[nonWearBool] <- NA
-                onoffvector_GGIRnapwind[nonWearBool] <- NA
-                onoffvector_GGIRWASOnapwind[nonWearBool] <- NA
-                onoffvector_cons_miscl[nonWearBool] <- NA
-                onoffvector_sibs_miscl[nonWearBool] <- NA
-                onoffvector_GGIRnapwind_miscl[nonWearBool] <- NA
-                onoffvector_GGIRWASOnapwind_miscl[nonWearBool] <- NA
-
-              } else {
-                print(paste0(ppts[p],
-                  ": No non-wear detected. If custom non-wear detection is required (non-GGIR), use 'nonwear_detect' on raw or downsampled accelerometer data to detect non-wear for inclusion in SRI calculation.")
-                  )
-              }
-            }
-          }
-        }
-
-        # --------------------
-        # -> Remove all days with more than 6h NA (overwrite them as NA) ---------
-        hto12 <- 12 - originclock
-        sec12ts <- originIso + hto12*60*60
-        fir12ts <- sec12ts - 24*60*60
-        las12ts <- fir12ts + (maxdays + 2)*24*60*60
-        setof12s <- as.numeric(seq(from=fir12ts, to=las12ts, by=24*60*60))
-
-        for (j in 1:(length(setof12s)-1)){
-          dayBl <- pptTV > setof12s[j] & pptTV <= setof12s[j+1] # Boolean referencing each day
-
-          if (sum(is.na(onoffvector_cons[dayBl])) > 1440/24*exclNAhrs){
-            onoffvector_cons[dayBl] <- NA
-          }
-          if (sum(is.na(onoffvector_sibs[dayBl])) > 1440/24*exclNAhrs){
-            onoffvector_sibs[dayBl] <- NA
-          }
-          if (sum(is.na(onoffvector_GGIRnapwind[dayBl])) > 1440/24*exclNAhrs){
-            onoffvector_GGIRnapwind[dayBl] <- NA
-          }
-          if (sum(is.na(onoffvector_GGIRWASOnapwind[dayBl])) > 1440/24*exclNAhrs){
-            onoffvector_GGIRWASOnapwind[dayBl] <- NA
-          }
-          if (sum(is.na(onoffvector_cons_miscl[dayBl])) > 1440/24*exclNAhrs){
-            onoffvector_cons_miscl[dayBl] <- NA
-          }
-          if (sum(is.na(onoffvector_sibs_miscl[dayBl])) > 1440/24*exclNAhrs){
-            onoffvector_sibs_miscl[dayBl] <- NA
-          }
-          if (sum(is.na(onoffvector_GGIRnapwind_miscl[dayBl])) > 1440/24*exclNAhrs){
-            onoffvector_GGIRnapwind_miscl[dayBl] <- NA
-          }
-          if (sum(is.na(onoffvector_GGIRWASOnapwind_miscl[dayBl])) > 1440/24*exclNAhrs){
-            onoffvector_GGIRWASOnapwind_miscl[dayBl] <- NA
-          }
-        }
-
-        # --------------------
-        # -> Calculate SRI: --------
-        # Using onset and offset times only ---------
-        swv1_1 <- onoffvector_cons[1:(length(onoffvector_cons)-(24*60))]
-        swv2_1 <- onoffvector_cons[((24*60)+1):(length(onoffvector_cons))]
-        SRI_onoff <- -100 + 200*(1-mean(abs(swv2_1-swv1_1),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
-        # Using onset, offset, and SIB gaps >= WASOmin within onset/offset periods ---------
-        swv1_2 <- onoffvector_sibs[1:( length(onoffvector_sibs)-(24*60) )]
-        swv2_2 <- onoffvector_sibs[((24*60)+1):(length(onoffvector_sibs))]
-        SRI_onoffWASO <- -100 + 200*(1-mean(abs(swv2_2-swv1_2),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
-
-        # Using onset, offset + nap window ---------
-        swv1_6 <- onoffvector_GGIRnapwind[1:(length(onoffvector_GGIRnapwind)-(24*60))]
-        swv2_6 <- onoffvector_GGIRnapwind[((24*60)+1):length(onoffvector_GGIRnapwind)]
-        SRI_onoffnap_wind <- -100 + 200*(1-mean(abs(swv2_6-swv1_6),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
-
-        # Using onset, offset + WASO + nap window ---------
-        swv1_7 <- onoffvector_GGIRWASOnapwind[1:(length(onoffvector_GGIRWASOnapwind)-(24*60))]
-        swv2_7 <- onoffvector_GGIRWASOnapwind[((24*60)+1):length(onoffvector_GGIRWASOnapwind)]
-        SRI_onoffWASOnap_wind <- -100 + 200*(1-mean(abs(swv2_7-swv1_7),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
-
-        # As above, but after removal of miscalculated nights ---------
-        swv1_8 <- onoffvector_cons_miscl[1:(length(onoffvector_cons_miscl)-(24*60) )]
-        swv2_8 <- onoffvector_cons_miscl[((24*60)+1):(length(onoffvector_cons_miscl))]
-        misclSRI_onoff <- -100 + 200*(1-mean(abs(swv2_8-swv1_8),na.rm=TRUE))
-
-        swv1_9 <- onoffvector_sibs_miscl[1:( length(onoffvector_sibs_miscl)-(24*60) )]
-        swv2_9 <- onoffvector_sibs_miscl[((24*60)+1):(length(onoffvector_sibs_miscl))]
-        misclSRI_onoffWASO <- -100 + 200*(1-mean(abs(swv2_9-swv1_9),na.rm=TRUE))
-
-        swv1_10 <- onoffvector_GGIRnapwind_miscl[1:(length(onoffvector_GGIRnapwind_miscl)-(24*60))]
-        swv2_10 <- onoffvector_GGIRnapwind_miscl[((24*60)+1):length(onoffvector_GGIRnapwind_miscl)]
-        misclSRI_onoffnap_wind <- -100 + 200*(1-mean(abs(swv2_10-swv1_10),na.rm=TRUE))
-
-        swv1_11 <- onoffvector_GGIRWASOnapwind_miscl[1:(length(onoffvector_GGIRWASOnapwind_miscl)-(24*60))]
-        swv2_11 <- onoffvector_GGIRWASOnapwind_miscl[((24*60)+1):length(onoffvector_GGIRWASOnapwind_miscl)]
-        misclSRI_onoffWASOnap_wind <- -100 + 200*(1-mean(abs(swv2_11-swv1_11),na.rm=TRUE))
-
-        # --------------------
-        # -> Check SRIdays for each SRI calculation, find those w/ <= 4 days overlapping data, re-label as NA ---------
-        swv1.li <- list(swv1_1, swv1_2, swv1_6, swv1_7, swv1_8, swv1_9, swv1_10, swv1_11) # List all SWVs used for SRI calc
-        swv2.li <- list(swv2_1, swv2_2, swv2_6, swv2_7, swv2_8, swv2_9, swv2_10, swv2_11)
-
-        SRIdays.li <- list()
-        for (i in 1:length(swv1.li)) {
-          SRIdays.li[[i]] <- sum(!is.na(swv1.li[[i]]*swv2.li[[i]]))/24/60
-        }
-
-        # --------------------
-        # -> Choose required SRI score and 'SRIdays' ----------
-        SRIvec <- c(SRI_onoff,SRI_onoffWASO,SRI_onoffnap_wind,SRI_onoffWASOnap_wind,
-                    misclSRI_onoff,misclSRI_onoffWASO,misclSRI_onoffnap_wind,misclSRI_onoffWASOnap_wind)
-
-        SRIvec[SRIdays.li < minSRIdays] <- NA # Call all SRI values with fewer than 4 days NA
-
-        t.nap <- c(F,F,T,T,F,F,T,T)
-        if (use.naps == FALSE){
-          t.nap <- !t.nap
-        }
-        t.WASO <- c(F,T,F,T,F,T,F,T)
-
-        if (use.WASO == FALSE){
-          t.WASO <- !t.WASO
-        }
-
-        t.miscal <- c(F,F,F,F,T,T,T,T)
-        if (use.miscal == FALSE){
-          t.miscal <- !t.miscal
-        }
-        t.SRI <- t.nap*t.WASO*t.miscal
-        t.SRI <- as.logical(t.SRI)
-        SRI <- SRIvec[t.SRI]
-        SRIdays <- SRIdays.li[[which(t.SRI)]]
-
-        # --------------------
-        # -> Calculate and write SWVs for each SRI version ---------
-        if (wr.SWV == TRUE){
-          # Extract the SWV on/off values as UNIXtime, in the same format as the light data timestamps
-          ts1 <- originmin*60 # Get first timestamp
-
-          SWVlist <- list(onoffvector_cons,onoffvector_sibs,onoffvector_GGIRnapwind,onoffvector_GGIRWASOnapwind,
-                          onoffvector_cons_miscl,onoffvector_sibs_miscl,onoffvector_GGIRnapwind_miscl,
-                          onoffvector_GGIRWASOnapwind_miscl) # Make a list of all SWVs
-          names(SWVlist) <- c("onoff", "onoff_WASO", "onoff_nap", "onoff_WASOnap",
-                              "mclonoff", "mclonoff_WASO", "mclonoff_nap", "mclonoff_WASOnap")
-
-          sav <- 0
-          for (i in 1:length(SWVlist)){
-            ts <- sequence(length(SWVlist[[i]]), ts1, 60) # Generate a vector of timestamps
-
-            ts1df <- data.frame(trans = SWVlist[[i]][1],t = ts1) # First timestamp
-            tsenddf <- data.frame(trans = SWVlist[[i]][length(SWVlist[[i]])],t = ts[length(ts)]) # Last timestamp
-
-            ont <- ts[which(diff(SWVlist[[i]]) == 1)+1] # Extract on times
-            offt <- ts[which(diff(SWVlist[[i]]) == -1)+1] # Extract off times
-
-            if (length(ont) == 0 | length(offt) == 0){
-              print(paste0("Error: No sleep-wake transitions are present, ", ppts[p]))
-              break
-            }
-
-            ondf <- data.frame(trans = 1, t = ont)
-            offdf <- data.frame(trans = 0,t = offt)
-
-            NAont <- ts[which(diff(is.na(SWVlist[[i]])) == 1)+1] # Extract NA on times
-            if (length(NAont) > 0){
-              NAondf <- data.frame(trans = NA,t = NAont)
-            } else {
-              NAondf <- data.frame(trans = NA,t = NA)
-            }
-
-            NAofft <- ts[which(diff(is.na(SWVlist[[i]])) == -1)+1] # Extract NA off times
-            if (length(NAofft) > 0){
-              NAoffdf <- data.frame(trans = 0,t = NAofft)
-              NAoffdf$trans[SWVlist[[i]][which(diff(is.na(SWVlist[[i]])) == -1)+1] == 1] <- 1
-            } else {
-              NAoffdf <- data.frame(trans = NA,t = NA)
-            }
-
-            catdf <- rbind(ts1df,ondf,offdf,NAondf,NAoffdf,tsenddf) # Concatenate
-            orcatdf <- catdf[order(catdf$t),] # Order by timestamp
-            orcatdf <- orcatdf[!is.na(orcatdf$t),] # Remove all timestamps == NA
-
-            if (orcatdf$t[length(orcatdf$t)] == orcatdf$t[length(orcatdf$t)-1]){ # If duplicate final values, remove last
-              orcatdf <- orcatdf[-nrow(orcatdf),]
-            }
-
-            if (i == which(t.SRI)){ # Save only the required SWV for raster plot
-              s.orcatdf <- orcatdf
-              sav <- 1
-            }
-
-            writevec <- c(ppts[p], names(SWVlist[i]), as.vector(as.matrix(orcatdf)))
-            write.table(t(writevec), SWVfile, sep = ",", col.names = !file.exists(SWVfile), append = TRUE, row.names=FALSE)
-          }
-        }
-
-        # --------------------
-        # -> Read in percentile, compare w/ SRI --------
-        SRI_pctl <- quant$X[which(abs(quant$qu - SRI) == min(abs(quant$qu - SRI)))]
-        if(length(SRI_pctl) > 1){
-          SRI_pctl <- SRI_pctl[1]
-        }
-        if (is.na(SRI)){
-          SRI_pctl <- NA
-        }
-
-        # --------------------
-        # -> Plot / save raster -----
-        if (wr.raster == TRUE){
-          if (sav == 1){
-            raster_from_SWS(SWS=s.orcatdf,
-                            rasdir=rasdir,
-                            pptName=ppts[p],
-                            tz=tz)
+          NAont <- ts[which(diff(is.na(SWVlist[[i]])) == 1)+1] # Extract NA on times
+          if (length(NAont) > 0){
+            NAondf <- data.frame(trans = NA,t = NAont)
           } else {
-            print(paste0("Error: Raster cannot be plotted - no sleep-wake transitions, ", ppts[p]))
+            NAondf <- data.frame(trans = NA,t = NA)
           }
 
+          NAofft <- ts[which(diff(is.na(SWVlist[[i]])) == -1)+1] # Extract NA off times
+          if (length(NAofft) > 0){
+            NAoffdf <- data.frame(trans = 0,t = NAofft)
+            NAoffdf$trans[SWVlist[[i]][which(diff(is.na(SWVlist[[i]])) == -1)+1] == 1] <- 1
+          } else {
+            NAoffdf <- data.frame(trans = NA,t = NA)
+          }
+
+          catdf <- rbind(ts1df,ondf,offdf,NAondf,NAoffdf,tsenddf) # Concatenate
+          orcatdf <- catdf[order(catdf$t),] # Order by timestamp
+          orcatdf <- orcatdf[!is.na(orcatdf$t),] # Remove all timestamps == NA
+
+          if (orcatdf$t[length(orcatdf$t)] == orcatdf$t[length(orcatdf$t)-1]){ # If duplicate final values, remove last
+            orcatdf <- orcatdf[-nrow(orcatdf),]
+          }
+
+          if (i == which(t.SRI)){ # Save only the required SWV for raster plot
+            s.orcatdf <- orcatdf
+            sav <- 1
+          }
+
+          writevec <- c(ppts[p], names(SWVlist[i]), as.vector(as.matrix(orcatdf)))
+          write.table(t(writevec), SWVfile, sep = ",", col.names = !file.exists(SWVfile), append = TRUE, row.names=FALSE)
+        }
+      }
+
+      # --------------------
+      # -> Read in percentile, compare w/ SRI --------
+      SRI_pctl <- quant$X[which(abs(quant$qu - SRI) == min(abs(quant$qu - SRI)))]
+      if(length(SRI_pctl) > 1){
+        SRI_pctl <- SRI_pctl[1]
+      }
+      if (is.na(SRI)){
+        SRI_pctl <- NA
+      }
+
+      # --------------------
+      # -> Plot / save raster -----
+      if (wr.raster == TRUE){
+        if (sav == 1){
+          raster_from_SWS(SWS=s.orcatdf,
+                          rasdir=rasdir,
+                          pptName=ppts[p],
+                          tz=tz)
+        } else {
+          print(paste0("Error: Raster cannot be plotted - no sleep-wake transitions, ", ppts[p]))
         }
 
-        # --------------------
-        # -> Write SRI data to file ----------
-        writevec <- c(ppts[p],SRI,SRIdays,SRI_pctl,misclnightscount)
-        write.table(t(writevec), SRIfile, sep = ",", col.names = !file.exists(SRIfile), append = TRUE, row.names=FALSE)
-        print(paste0("SRI extracted: ", ppts[p]))
-        # --------------------
+      }
+
+      # --------------------
+      # -> Write SRI data to file ----------
+      writevec <- c(ppts[p],SRI,SRIdays,SRI_pctl,misclnightscount)
+      write.table(t(writevec), SRIfile, sep = ",", col.names = !file.exists(SRIfile), append = TRUE, row.names=FALSE)
+      print(paste0("SRI extracted: ", ppts[p]))
+      # --------------------
 
 
       #   }, error = function(e) {
@@ -1559,7 +1562,7 @@ SRI_from_binary <- function (binarydir = c(),
                              wr.raster = TRUE,
                              minSRIdays = 5,
                              exclNAhrs = 6
-                             ){
+){
   # ---------------------------------------
   # Specify directories ---------
   if (length(binarydir) == 0){
@@ -1598,123 +1601,123 @@ SRI_from_binary <- function (binarydir = c(),
   # Loop over files, extracting SWVs and SRI -------
   for (k in 1:length(file_list)){
     # tryCatch({ # Start of code to catch any error in a loop iteration, write error to SRI file, and skip to next loop iteration
-      # --------------------
-      # -> Read in data, get filename -------
-      studyname <- ppt_list[k] # Names of output folders = filename - directory
-      appt.rd <- as.data.frame(data.table::fread(file=file_list[k])) # Read in data for this ppt
+    # --------------------
+    # -> Read in data, get filename -------
+    studyname <- ppt_list[k] # Names of output folders = filename - directory
+    appt.rd <- as.data.frame(data.table::fread(file=file_list[k])) # Read in data for this ppt
 
-      suppressWarnings(
-        appt.rd[,col.trans] <- as.numeric(appt.rd[,col.trans])
-      )
+    suppressWarnings(
+      appt.rd[,col.trans] <- as.numeric(appt.rd[,col.trans])
+    )
 
-      # -> Exclude cases where file format is wrong, write error to file ----------
-      if (appt.rd[nrow(appt.rd),2] == appt.rd[nrow(appt.rd)-1,2]){
-        appt.rd <- appt.rd[-nrow(appt.rd),]
+    # -> Exclude cases where file format is wrong, write error to file ----------
+    if (appt.rd[nrow(appt.rd),2] == appt.rd[nrow(appt.rd)-1,2]){
+      appt.rd <- appt.rd[-nrow(appt.rd),]
+    }
+
+    if (ncol(appt.rd) != 2){ # If not 2 columns
+      error_vec <- c(studyname,na_vec)
+      write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
+                  append = TRUE, row.names=FALSE) # Write Error to SRI.csv
+      print(paste0("Incorrect input file format: ",studyname,". Require only two columns of data."))
+      next
+    }
+
+    if (!all(diff(appt.rd[,2]) > 0)){ # If second column is not sequential
+      error_vec <- c(studyname,na_vec)
+      write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
+                  append = TRUE, row.names=FALSE) # Write Error to SRI.csv
+      print(paste0("Incorrect input file format: ",studyname,". Check timestamp column is ordered and non-repeating."))
+      next
+    }
+
+    if (sum(!((unique(appt.rd[,1])) %in% c(1,0,NA))) > 0){ # If values other than 1 or 0 present
+      error_vec <- c(studyname,na_vec)
+      write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
+                  append = TRUE, row.names=FALSE) # Write Error to SRI.csv
+      print(paste0("Incorrect input file format: ",studyname,". Check transition column contains only 1, 0, NA, or end."))
+      next
+    }
+
+    bi.tst <- appt.rd[c(-1,-nrow(appt.rd)),1]
+    bi.tst[is.na(bi.tst)] <- 10
+    if (sum(diff(bi.tst) == 0) > 0){ # If binary column is not alternating
+      error_vec <- c(studyname,na_vec)
+      write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
+                  append = TRUE, row.names=FALSE) # Write Error to SRI.csv
+      print(paste0("Incorrect input file format: ",studyname,". Check input files are SWS (sleep-wake summary) format, with alternating 0, 1 & NA representing transitions. See SWS_from_binarySW()."))
+      next
+    }
+
+    # Name d.f. headers
+    appt <- data.frame(trans = appt.rd[,col.trans], t = appt.rd[,col.timestamp])
+
+    # -> Round times to the nearest 10 sec ----------
+    appt$t.rnd <- round(appt$t,-1)
+
+    # -> Re-construct SWV ---------
+    dif <- diff(appt$t.rnd/10) # Count difference between on/off/NA values, 10sec interval for SWV
+    SWV <- vector()
+    for (i in 1:(nrow(appt)-1)){
+      SWV <- c(SWV,rep(appt$trans[i],dif[i]))
+    }
+    SWV <- as.numeric(SWV)
+
+    # -> Remove all days with more than 6h NA (overwrite them as NA) ---------
+    originTs <- appt$t.rnd[1]
+    dt <- as.POSIXct(appt$t.rnd[1],origin="1970-01-01",tz=tz)
+    originclock <- as.numeric(substr(dt,12,13)) + (as.numeric(substr(dt,15,16)))/60 + (as.numeric(substr(dt,18,19)))/60/60 # 24h clock time of first timestamp
+    if (is.na(originclock) & nchar(dt)==10){
+      originclock <- 0
+    }
+    maxdays <- ceiling((range(appt$t.rnd)[2] - range(appt$t.rnd)[1])/60/60/24) # Max days of data this ppt will have
+    pptTV <- seq(from=originTs, by=10, length.out=length(SWV))
+
+    hto12 <- 12 - originclock
+    sec12ts <- originTs + hto12*60*60
+    fir12ts <- sec12ts - 24*60*60
+    las12ts <- fir12ts + (maxdays + 2)*24*60*60
+    setof12s <- as.numeric(seq(from=fir12ts, to=las12ts, by=24*60*60))
+
+    for (j in 1:(length(setof12s)-1)){
+      dayBl <- pptTV > setof12s[j] & pptTV <= setof12s[j+1] # Boolean referencing each day
+      if (sum(is.na(SWV[dayBl])) > (60*60*24/10)*(exclNAhrs/24)){
+        SWV[dayBl] <- NA
       }
+    }
 
-      if (ncol(appt.rd) != 2){ # If not 2 columns
-        error_vec <- c(studyname,na_vec)
-        write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
-                    append = TRUE, row.names=FALSE) # Write Error to SRI.csv
-        print(paste0("Incorrect input file format: ",studyname,". Require only two columns of data."))
-        next
-      }
+    # -> Calculate SRI ---------
+    SWV1 <- SWV[1:(length(SWV)-(24*60*6))] # Remove last 24h
+    SWV2 <- SWV[((24*60*6)+1):(length(SWV))] # Remove first 24h
+    appt.SRI <- -100 + 200*(1-mean(abs(SWV2-SWV1),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
 
-      if (!all(diff(appt.rd[,2]) > 0)){ # If second column is not sequential
-        error_vec <- c(studyname,na_vec)
-        write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
-                    append = TRUE, row.names=FALSE) # Write Error to SRI.csv
-        print(paste0("Incorrect input file format: ",studyname,". Check timestamp column is ordered and non-repeating."))
-        next
-      }
+    # -> Read in percentile, compare w/ SRI --------
+    appt.SRI_pctl <- quant$X[which(abs(quant$qu - appt.SRI) == min(abs(quant$qu - appt.SRI)))]
 
-      if (sum(!((unique(appt.rd[,1])) %in% c(1,0,NA))) > 0){ # If values other than 1 or 0 present
-        error_vec <- c(studyname,na_vec)
-        write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
-                    append = TRUE, row.names=FALSE) # Write Error to SRI.csv
-        print(paste0("Incorrect input file format: ",studyname,". Check transition column contains only 1, 0, NA, or end."))
-        next
-      }
+    # -> Number of days used to calculate SRI --------
+    appt.SRI_days <- sum(!is.na(SWV1*SWV2))/6/60/24
 
-      bi.tst <- appt.rd[c(-1,-nrow(appt.rd)),1]
-      bi.tst[is.na(bi.tst)] <- 10
-      if (sum(diff(bi.tst) == 0) > 0){ # If binary column is not alternating
-        error_vec <- c(studyname,na_vec)
-        write.table(t(error_vec),SRIfile, sep = ",", col.names = !file.exists(SRIfile),
-                    append = TRUE, row.names=FALSE) # Write Error to SRI.csv
-        print(paste0("Incorrect input file format: ",studyname,". Check input files are SWS (sleep-wake summary) format, with alternating 0, 1 & NA representing transitions. See SWS_from_binarySW()."))
-        next
-      }
+    if (appt.SRI_days < minSRIdays){
+      appt.SRI <- NA
+      appt.SRI_pctl <- NA
+    }
 
-      # Name d.f. headers
-      appt <- data.frame(trans = appt.rd[,col.trans], t = appt.rd[,col.timestamp])
+    # ---------------------------
+    # -> Write all data to .csv file -----------
+    writevec <- c(studyname, appt.SRI, appt.SRI_days, appt.SRI_pctl)
+    write.table(t(writevec), SRIfile, sep = ",", col.names = !file.exists(SRIfile), append = TRUE, row.names=FALSE)
+    print(paste0("SRI extracted: ", studyname))
 
-      # -> Round times to the nearest 10 sec ----------
-      appt$t.rnd <- round(appt$t,-1)
+    # ---------------------------
+    # -> Plot raster and save to file ----------
+    if (wr.raster == TRUE){
+      raster_from_SWS(SWS=appt.rd,
+                      rasdir=rasdir,
+                      pptName = studyname,
+                      tz=tz)
+    }
 
-      # -> Re-construct SWV ---------
-      dif <- diff(appt$t.rnd/10) # Count difference between on/off/NA values, 10sec interval for SWV
-      SWV <- vector()
-      for (i in 1:(nrow(appt)-1)){
-        SWV <- c(SWV,rep(appt$trans[i],dif[i]))
-      }
-      SWV <- as.numeric(SWV)
-
-      # -> Remove all days with more than 6h NA (overwrite them as NA) ---------
-      originTs <- appt$t.rnd[1]
-      dt <- as.POSIXct(appt$t.rnd[1],origin="1970-01-01",tz=tz)
-      originclock <- as.numeric(substr(dt,12,13)) + (as.numeric(substr(dt,15,16)))/60 + (as.numeric(substr(dt,18,19)))/60/60 # 24h clock time of first timestamp
-      if (is.na(originclock) & nchar(dt)==10){
-        originclock <- 0
-        }
-      maxdays <- ceiling((range(appt$t.rnd)[2] - range(appt$t.rnd)[1])/60/60/24) # Max days of data this ppt will have
-      pptTV <- seq(from=originTs, by=10, length.out=length(SWV))
-
-      hto12 <- 12 - originclock
-      sec12ts <- originTs + hto12*60*60
-      fir12ts <- sec12ts - 24*60*60
-      las12ts <- fir12ts + (maxdays + 2)*24*60*60
-      setof12s <- as.numeric(seq(from=fir12ts, to=las12ts, by=24*60*60))
-
-      for (j in 1:(length(setof12s)-1)){
-        dayBl <- pptTV > setof12s[j] & pptTV <= setof12s[j+1] # Boolean referencing each day
-        if (sum(is.na(SWV[dayBl])) > (60*60*24/10)*(exclNAhrs/24)){
-          SWV[dayBl] <- NA
-        }
-      }
-
-      # -> Calculate SRI ---------
-      SWV1 <- SWV[1:(length(SWV)-(24*60*6))] # Remove last 24h
-      SWV2 <- SWV[((24*60*6)+1):(length(SWV))] # Remove first 24h
-      appt.SRI <- -100 + 200*(1-mean(abs(SWV2-SWV1),na.rm=TRUE)) # Calculate SRI from the two comparison vectors
-
-      # -> Read in percentile, compare w/ SRI --------
-      appt.SRI_pctl <- quant$X[which(abs(quant$qu - appt.SRI) == min(abs(quant$qu - appt.SRI)))]
-
-      # -> Number of days used to calculate SRI --------
-      appt.SRI_days <- sum(!is.na(SWV1*SWV2))/6/60/24
-
-      if (appt.SRI_days < minSRIdays){
-        appt.SRI <- NA
-        appt.SRI_pctl <- NA
-      }
-
-      # ---------------------------
-      # -> Write all data to .csv file -----------
-      writevec <- c(studyname, appt.SRI, appt.SRI_days, appt.SRI_pctl)
-      write.table(t(writevec), SRIfile, sep = ",", col.names = !file.exists(SRIfile), append = TRUE, row.names=FALSE)
-      print(paste0("SRI extracted: ", studyname))
-
-      # ---------------------------
-      # -> Plot raster and save to file ----------
-      if (wr.raster == TRUE){
-        raster_from_SWS(SWS=appt.rd,
-                        rasdir=rasdir,
-                        pptName = studyname,
-                        tz=tz)
-      }
-
-      # ---------------------------
+    # ---------------------------
 
     #   }, error = function(e) {
     #   print(e)
@@ -1753,11 +1756,11 @@ SRI_from_binary <- function (binarydir = c(),
 #' SWS_from_SWV(SWVfile="~/R/Biobank/Light_Data/127_evenfreq_output/SWV.csv")
 #' SWS_from_SWV(SWVfile="~/R/Biobank/Light_Data/265_evenfreq_output/SWV.csv")
 SWS_from_SWV <- function(SWVfile = c(),
-                     SWSdir = c(),
-                     use.naps = TRUE,
-                     use.WASO = TRUE,
-                     use.miscal = TRUE
-                     ){
+                         SWSdir = c(),
+                         use.naps = TRUE,
+                         use.WASO = TRUE,
+                         use.miscal = TRUE
+){
   # Check inputs ----------
   if (length(SWVfile) == 0){
     stop("Error: Specify location of sleep-wake vector (SWV) file")
@@ -1844,9 +1847,9 @@ SWS_from_SWV <- function(SWVfile = c(),
 #' SWS_from_binarySW(binarySWdir = "~/R/Biobank/binarySW", tsCol = 2, binaryCol = 1)
 
 SWS_from_binarySW <- function(binarySWdir = c(),
-                             tsCol = c(),
-                             binaryCol = c()
-                             ){
+                              tsCol = c(),
+                              binaryCol = c()
+){
   if (length(binarySWdir) == 0){
     stop("Error: Specify location of binary sleep-wake file")
   }
@@ -1869,85 +1872,85 @@ SWS_from_binarySW <- function(binarySWdir = c(),
     for (i in 1:length(fls)){
       # tryCatch({
 
-        orcatdf <- data.frame(trans=NA, t=NA)
-        pptD <- read.csv(fls[i])
+      orcatdf <- data.frame(trans=NA, t=NA)
+      pptD <- read.csv(fls[i])
 
-        suppressWarnings(
-          binarySW <- as.numeric(pptD[,binaryCol])
-        )
-        suppressWarnings(
-          ts <- as.numeric(pptD[,tsCol])
-        )
+      suppressWarnings(
+        binarySW <- as.numeric(pptD[,binaryCol])
+      )
+      suppressWarnings(
+        ts <- as.numeric(pptD[,tsCol])
+      )
 
-        if (sum(unique(diff(ts)) <= 0) > 0){
-          print(paste0("Error: ", fls_name[i],". Timestamp column contains repeated or non-ordered values. This may arise due to daylight savings transition(s) contained within data converted from date-time to UNIX time."))
-          print(paste0("Check row: ", which(diff(ts)<=0)+1))
-          next
-        }
+      if (sum(unique(diff(ts)) <= 0) > 0){
+        print(paste0("Error: ", fls_name[i],". Timestamp column contains repeated or non-ordered values. This may arise due to daylight savings transition(s) contained within data converted from date-time to UNIX time."))
+        print(paste0("Check row: ", which(diff(ts)<=0)+1))
+        next
+      }
 
-        if (sum(!(unique(binarySW) %in% c(1,0,NA))) > 0){
-          print(paste0("Error: ", fls_name[i],". Binary column must contain only 1, 0, or NA."))
-          next
-        }
+      if (sum(!(unique(binarySW) %in% c(1,0,NA))) > 0){
+        print(paste0("Error: ", fls_name[i],". Binary column must contain only 1, 0, or NA."))
+        next
+      }
 
-        if (sum(unique(diff(ts)) < 1) > 0){ # If frequency is <1Hz
-          print(paste0("Error: ", fls_name[i],". Please group binary data into bins >= 1 second"))
-          next
+      if (sum(unique(diff(ts)) < 1) > 0){ # If frequency is <1Hz
+        print(paste0("Error: ", fls_name[i],". Please group binary data into bins >= 1 second"))
+        next
 
-        }
+      }
 
-        ts1 <- pptD[1,tsCol] # Extract first timestamp
+      ts1 <- pptD[1,tsCol] # Extract first timestamp
 
-        ts1df <- data.frame(trans = binarySW[1],t = ts1) # First timestamp
-        tsenddf <- data.frame(trans = binarySW[length(binarySW)],t = ts[length(ts)]) # Last timestamp
+      ts1df <- data.frame(trans = binarySW[1],t = ts1) # First timestamp
+      tsenddf <- data.frame(trans = binarySW[length(binarySW)],t = ts[length(ts)]) # Last timestamp
 
-        ont <- ts[which(diff(binarySW) == 1)+1] # Extract on times
-        offt <- ts[which(diff(binarySW) == -1)+1] # Extract off times
-        NAont <- ts[which(diff(is.na(binarySW)) == 1)+1] # Extract NA on times
-        NAofft <- ts[which(diff(is.na(binarySW)) == -1)+1] # Extract NA off times
+      ont <- ts[which(diff(binarySW) == 1)+1] # Extract on times
+      offt <- ts[which(diff(binarySW) == -1)+1] # Extract off times
+      NAont <- ts[which(diff(is.na(binarySW)) == 1)+1] # Extract NA on times
+      NAofft <- ts[which(diff(is.na(binarySW)) == -1)+1] # Extract NA off times
 
-        if ((length(ont) + length(offt) + length(NAont) + length(NAofft)) == 0){
-          print(paste0("Error: No transitions are present, ", fls_name[i]))
-          write.table(orcatdf, paste0(wrLoc,"/",fls_name[i]), sep = ",",
-                      col.names = FALSE, row.names = FALSE)
+      if ((length(ont) + length(offt) + length(NAont) + length(NAofft)) == 0){
+        print(paste0("Error: No transitions are present, ", fls_name[i]))
+        write.table(orcatdf, paste0(wrLoc,"/",fls_name[i]), sep = ",",
+                    col.names = FALSE, row.names = FALSE)
+      } else {
+        if (length(ont) > 0){
+          ondf <- data.frame(trans = 1, t = ont)
         } else {
-          if (length(ont) > 0){
-            ondf <- data.frame(trans = 1, t = ont)
-          } else {
-            ondf <- data.frame(trans = NA,t = NA)
-          }
-
-          if (length(offt) > 0){
-            offdf <- data.frame(trans = 0,t = offt)
-          } else {
-            offdf <- data.frame(trans = NA,t = NA)
-          }
-
-          if (length(NAont) > 0){
-            NAondf <- data.frame(trans = NA,t = NAont)
-          } else {
-            NAondf <- data.frame(trans = NA,t = NA)
-          }
-
-          if (length(NAofft) > 0){
-            NAoffdf <- data.frame(trans = 0,t = NAofft)
-            NAoffdf$trans[binarySW[which(diff(is.na(binarySW)) == -1)+1] == 1] <- 1
-          } else {
-            NAoffdf <- data.frame(trans = NA,t = NA)
-          }
-
-          catdf <- rbind(ts1df,ondf,offdf,NAondf,NAoffdf,tsenddf) # Concatenate
-          orcatdf <- catdf[order(catdf$t),] # Order by timestamp
-          orcatdf <- orcatdf[!is.na(orcatdf$t),] # Remove all timestamps == NA
-
-          if (orcatdf$t[length(orcatdf$t)] == orcatdf$t[length(orcatdf$t)-1]){ # If duplicate final values, remove last
-            orcatdf <- orcatdf[-nrow(orcatdf),]
-          }
-
-          write.table(orcatdf, paste0(wrLoc,"/",fls_name[i]), sep = ",",
-                      col.names = FALSE, row.names = FALSE)
-          print(paste0("SWS conversion complete: ", fls_name[i]))
+          ondf <- data.frame(trans = NA,t = NA)
         }
+
+        if (length(offt) > 0){
+          offdf <- data.frame(trans = 0,t = offt)
+        } else {
+          offdf <- data.frame(trans = NA,t = NA)
+        }
+
+        if (length(NAont) > 0){
+          NAondf <- data.frame(trans = NA,t = NAont)
+        } else {
+          NAondf <- data.frame(trans = NA,t = NA)
+        }
+
+        if (length(NAofft) > 0){
+          NAoffdf <- data.frame(trans = 0,t = NAofft)
+          NAoffdf$trans[binarySW[which(diff(is.na(binarySW)) == -1)+1] == 1] <- 1
+        } else {
+          NAoffdf <- data.frame(trans = NA,t = NA)
+        }
+
+        catdf <- rbind(ts1df,ondf,offdf,NAondf,NAoffdf,tsenddf) # Concatenate
+        orcatdf <- catdf[order(catdf$t),] # Order by timestamp
+        orcatdf <- orcatdf[!is.na(orcatdf$t),] # Remove all timestamps == NA
+
+        if (orcatdf$t[length(orcatdf$t)] == orcatdf$t[length(orcatdf$t)-1]){ # If duplicate final values, remove last
+          orcatdf <- orcatdf[-nrow(orcatdf),]
+        }
+
+        write.table(orcatdf, paste0(wrLoc,"/",fls_name[i]), sep = ",",
+                    col.names = FALSE, row.names = FALSE)
+        print(paste0("SWS conversion complete: ", fls_name[i]))
+      }
 
 
       #   }, error = function(e) {
