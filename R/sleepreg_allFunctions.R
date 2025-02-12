@@ -706,7 +706,6 @@ SRI_from_GGIR <- function(outputdir = c(),
   # this only affects output SRI_pctl:
   # load("data/quant.RData")
 
-  load("~/projects/sleepreg/data/quant.RData")
   # ----------------------------------------------------
   # Loop over files, extracting SWVs and SRI -----------
   for (k in 1:length(dir_list)){
