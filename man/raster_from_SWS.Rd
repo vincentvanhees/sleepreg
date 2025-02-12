@@ -17,9 +17,6 @@ Final timestamp specifies recording end.}
 
 \item{tz}{Timezone (use OlsonNames() for a list of accepted timezone names)}
 }
-\value{
-
-}
 \description{
 Extract raster plots from a binary sleep-wake time series (summarized as a reduced-form data frame)
 

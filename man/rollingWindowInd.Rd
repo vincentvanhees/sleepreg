@@ -13,9 +13,6 @@ rollingWindowInd(t = c(), window = c(), step = c())
 
 \item{step}{Step size for sliding window along time series}
 }
-\value{
-
-}
 \description{
 Fits rolling windows to time series and outputs start/end indices of each window.
 

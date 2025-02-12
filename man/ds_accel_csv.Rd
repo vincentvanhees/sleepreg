@@ -23,9 +23,6 @@ ds_accel_csv(
 
 \item{col.accel}{Columns of raw .csv files containing x-y-z accelerometer data e.g., c(1:3)}
 }
-\value{
-
-}
 \description{
 Down-samples .csv files to 1Hz, increasing speed and creating required input format for 'GGIR_from_csv' function.
 

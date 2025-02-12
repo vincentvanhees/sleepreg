@@ -74,9 +74,6 @@ SRI_from_accel_csv(
 
 \item{...}{}
 }
-\value{
-
-}
 \description{
 A wrapper that allows for direct calculation of Sleep Regularity Index (SRI) scores from accelerometer data (.csv format).
 

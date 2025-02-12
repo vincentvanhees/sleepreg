@@ -13,9 +13,6 @@ SWS_from_binarySW(binarySWdir = c(), tsCol = c(), binaryCol = c())
 
 \item{binaryCol}{Column containing binary sleep-wake vector}
 }
-\value{
-
-}
 \description{
 Takes binary sleep wake files (containing a timestamp column and a binary sleep-wake column)
 and converts to sleep-wake summary (SWS) format (file format used for input to SRI_from_binary function).

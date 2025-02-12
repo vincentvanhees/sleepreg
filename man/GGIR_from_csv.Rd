@@ -26,9 +26,6 @@ GGIR_from_csv(
 
 \item{tz}{Timezone (use OlsonNames() for a list of accepted timezone names}
 }
-\value{
-
-}
 \description{
 Specifies parameters and implements GGIR (Migueles et. al., 2019) across all .csv accelerometer files (frequency = 1Hz)
 in 'acceldir', extracting sleep-wake predictions and sustained inactivity bouts.

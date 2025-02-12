@@ -35,9 +35,6 @@ SRI_from_binary(
 
 \item{exclNAhrs}{Hours of NA per day above which entire day will be excluded (12noon-12noon)}
 }
-\value{
-
-}
 \description{
 Calculates SRI from a time series of binary sleep-wake summary (SWS) data in .csv format. Column 1 contains values 1=sleep,
 0=wake, NA=NA, end=recording end. Column 2 contains UNIX timestamps (origin=1970-01-01) identifying the start of each associated column 1 value.

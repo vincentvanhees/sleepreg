@@ -26,9 +26,6 @@ nonwear_detect(
 
 \item{rngThres}{Range threshold for non-wear classification, applied per window}
 }
-\value{
-
-}
 \description{
 Evaluates epoch-by-epoch non-wear status of accelerometer devices using method described in van Hees et. al. (2011). 15 minute epochs are
 evaluated based on surrounding 60 minute windows (centered at 15min), where standard deviation < 13mg and range < 50mg in at least two accelerometer axes

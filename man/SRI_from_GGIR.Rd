@@ -17,7 +17,8 @@ SRI_from_GGIR(
   wr.SWV = TRUE,
   wr.raster = TRUE,
   minSRIdays = 5,
-  SIdef = "T5A5"
+  SIdef = "T5A5",
+  GGIR_nonwear_detection_stage = "final"
 )
 }
 \arguments{
@@ -46,9 +47,6 @@ SRI_from_GGIR(
 \item{minSRIdays}{Minimum number of days of overlapping data to calculate valid SRI scores}
 
 \item{SIdef}{Sustained inactivity definition (e.g., T5A5)}
-}
-\value{
-
 }
 \description{
 Uses sleep windows and sustained inactivity bouts from GGIR output to calculate Sleep Regularity Index scores. Accounts for
